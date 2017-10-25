@@ -324,9 +324,9 @@ void gdt_setup(){
 }
 
 void idt_set_gate(int index,unsigned int base, unsigned short selector, unsigned char flags){
-    	idt_entries[index].base_low = base & 0xFFFF;
+	idt_entries[index].base_low = base & 0xFFFF;
 	idt_entries[index].base_high = (base >> 16) & 0xFFFF;
-    	idt_entries[index].selector = selector;
+	idt_entries[index].selector = selector;
 	idt_entries[index].always0 = 0;
 	idt_entries[index].flags   = flags;
 }
