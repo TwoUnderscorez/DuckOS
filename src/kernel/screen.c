@@ -5,6 +5,7 @@ unsigned char *vidmem=(unsigned char *)0xb8000;
 
 unsigned char x=0,y=0;
 
+// Clears the screen
 void screen_clear(){
 	int i;
 	for(i=0;i<4000;i+=2){
@@ -15,15 +16,20 @@ void screen_clear(){
 	y=0;
 }
 
+// Scrolls the screen
 void screen_scroll(){
 	int i;
 	for(i=160;i<4000;i++){
 		vidmem[i-160]=vidmem[i];
 	}
     i = 160*24;
-    while(i<4000) vidmem[i+=2] = 0;
+    for(i;i<4000;i+=2) {
+		vidmem[i]=0x20;
+		vidmem[i+1]=0x07;
+	}
 }
 
+// Prints a char to the screen
 void screen_print_char(char c) {
     if(y==25){
         screen_scroll();
@@ -64,6 +70,7 @@ void screen_print_char(char c) {
     set_cursor_position(y, x);
 }
 
+// Prints a string to the screen
 void screen_print(char *string){
 	int i=0;
 	while(string[i]){
@@ -72,6 +79,7 @@ void screen_print(char *string){
 	}
 }
 
+// Sets the cursor position
 void set_cursor_position(int row, int col) {
     unsigned short position=(row*80) + col;				//calc posotion and save it in a WORD
  
@@ -83,6 +91,7 @@ void set_cursor_position(int row, int col) {
     out_byte(0x3D5, (unsigned char )((position>>8)&0xFF));	//get high BYTE of WORD
  }
 
+ // int to ASCII
 char * itoa( int value, char * str, int base )
 {
 	char * rc;
@@ -121,6 +130,7 @@ char * itoa( int value, char * str, int base )
 	return rc;
 }
 
+// Print an int to the screen
 void screen_print_int(int i,int base){
 	char buf[100];
 	itoa(i,buf,base);

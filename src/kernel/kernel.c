@@ -4,7 +4,7 @@
 
 void free_write();
 
-int kmain(void *mbd,unsigned int magic){
+int kmain(void *mbd, unsigned int magic){
     int i = 0;
     while(i++<50000000);
 	screen_clear();

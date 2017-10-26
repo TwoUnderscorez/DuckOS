@@ -3,6 +3,7 @@
 extern void gdt_write(unsigned int);
 extern void idt_write(unsigned int);
 
+#pragma region isrs
 extern void isr0();
 extern void isr1();
 extern void isr2();
@@ -259,25 +260,29 @@ extern void isr252();
 extern void isr253();
 extern void isr254();
 extern void isr255();
+#pragma endregion
 
-struct gdt_entry_struct{
+// A struct that represents a line in the GDT
+struct gdt_entry_struct { 
     unsigned short limit_low;
     unsigned short base_low;
     unsigned char  base_middle;
     unsigned char  access;
-    unsigned char  granularity;
+    unsigned char  granularity; // 4 bits of the limit and 4 bits which are flags
     unsigned char  base_high;
-} __attribute__((packed));
+} __attribute__((packed)); //No padding
 
 typedef struct gdt_entry_struct gdt_entry_t;
 
-struct gdt_ptr_struct{
+// A struct that represents the pointer passed to lgdt (a.k.a. GDT descriptor)
+struct gdt_ptr_struct {
     unsigned short limit;
     unsigned int base;
 } __attribute__((packed));
 
 typedef struct gdt_ptr_struct gdt_ptr_t;
 
+// A struct that represents a line in the IDT
 struct idt_entry_struct{
     unsigned short base_low;
     unsigned short selector;
@@ -288,7 +293,7 @@ struct idt_entry_struct{
 
 typedef struct idt_entry_struct idt_entry_t;
 
-
+// A struct that represents the pointer passed to lidt (a.k.a. IDT descriptor)
 struct idt_ptr_struct{
     unsigned short limit;
     unsigned int base;
@@ -296,34 +301,39 @@ struct idt_ptr_struct{
 
 typedef struct idt_ptr_struct idt_ptr_t;
 
+// Define GDT
 gdt_entry_t gdt_entries[5];
+// Define IDT
 idt_entry_t idt_entries[256];
 
-gdt_entry_t gdt_set_gate(unsigned int base, unsigned int limit, unsigned char access, unsigned char granularity){
+// Prepares a gdt_entry_t for the GDT using the givem args
+gdt_entry_t gdt_set_gate(unsigned int base, unsigned int limit, unsigned char access, unsigned char granularity) {
 	gdt_entry_t gdt_entry;
 	gdt_entry.base_low = (base&0xFFFF);
 	gdt_entry.base_middle = (base>>16)&0xFF;
 	gdt_entry.base_high = (base>>24)&0xFF;
 	gdt_entry.limit_low = (limit&0xFFFF);
-	gdt_entry.granularity = (limit>>16)&0x0F;
-	gdt_entry.granularity |= granularity&0xF0;
+	gdt_entry.granularity = (limit>>16)&0x0F;  // Set the first 4bits to last 4bits of limit
+	gdt_entry.granularity |= granularity&0xF0; // Set the last 4bits to the flags.
 	gdt_entry.access=access;
 	return gdt_entry;
 }
 
-void gdt_setup(){
+// Setup the GDT
+void gdt_setup() {
 	gdt_ptr_t gdt_ptr;
 	gdt_ptr.limit = (sizeof(gdt_entry_t) * 5) - 1;
 	gdt_ptr.base  = (unsigned int)&gdt_entries;
-	gdt_entries[0]=gdt_set_gate(0, 0, 0, 0);
-	gdt_entries[1]=gdt_set_gate(0, 0xFFFFFFFF, 0x9A, 0xCF);
-	gdt_entries[2]=gdt_set_gate(0, 0xFFFFFFFF, 0x92, 0xCF);
-	gdt_entries[3]=gdt_set_gate(0, 0xFFFFFFFF, 0xFA, 0xCF);
-	gdt_entries[4]=gdt_set_gate(0, 0xFFFFFFFF, 0xF2, 0xCF);
+	gdt_entries[0]=gdt_set_gate(0, 0, 0, 0);				// Null descriptor
+	gdt_entries[1]=gdt_set_gate(0, 0xFFFFFFFF, 0x9A, 0xC0);	// CodeSeg for the kernel
+	gdt_entries[2]=gdt_set_gate(0, 0xFFFFFFFF, 0x92, 0xC0);	// DataSeg for the kernel
+	gdt_entries[3]=gdt_set_gate(0, 0xFFFFFFFF, 0xFA, 0xC0);	// CodeSeg for UserLand
+	gdt_entries[4]=gdt_set_gate(0, 0xFFFFFFFF, 0xF2, 0xC0); // DataSeg for UserLand
 	gdt_write((unsigned int)&gdt_ptr);
 }
 
-void idt_set_gate(int index,unsigned int base, unsigned short selector, unsigned char flags){
+// Prepares a idt_entry_t for the IDT using the givem args
+void idt_set_gate(int index,unsigned int base, unsigned short selector, unsigned char flags) {
 	idt_entries[index].base_low = base & 0xFFFF;
 	idt_entries[index].base_high = (base >> 16) & 0xFFFF;
 	idt_entries[index].selector = selector;
@@ -331,12 +341,14 @@ void idt_set_gate(int index,unsigned int base, unsigned short selector, unsigned
 	idt_entries[index].flags   = flags;
 }
 
-void idt_setup(){
+// Setup the IDT
+void idt_setup() {
 	idt_ptr_t idt_ptr;
 	idt_ptr.limit=sizeof(idt_entry_t)*256-1;
 	idt_ptr.base=(unsigned int)&idt_entries;
-	
+	//     int num,      the function, GDT, flags P = 1, DPL = 0; 
 	idt_set_gate(0,(unsigned int)isr0,0x08,0x8e);
+	#pragma region idt_set_gates
 	idt_set_gate(1,(unsigned int)isr1,0x08,0x8e);
 	idt_set_gate(2,(unsigned int)isr2,0x08,0x8e);
 	idt_set_gate(3,(unsigned int)isr3,0x08,0x8e);
@@ -592,6 +604,6 @@ void idt_setup(){
 	idt_set_gate(253,(unsigned int)isr253,0x08,0x8e);
 	idt_set_gate(254,(unsigned int)isr254,0x08,0x8e);
 	idt_set_gate(255,(unsigned int)isr255,0x08,0x8e);
-
+	#pragma endregion
 	idt_write((unsigned int)&idt_ptr);
 }

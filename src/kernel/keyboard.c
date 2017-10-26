@@ -58,3 +58,8 @@ char get_scanduck_from_keyboard() {
 		}
 	}while(1);
 }
+
+/* 
+Keys:
+One, Two, Three, Four, Five, Six, Seven, Eight, Nine, Zero, Minus, Equals, Backspace, Tab, q, w, e, r,t, y, u, i, o, p, OpeningSquareBracket, ClosingSquareBracket, Return, a, s, d, f, g, h, j, k, Apostrophy, BackTick, LShift, BackSlash, z, x, c, v, b, n, m, Comma, Dot, ForwardSlash, KeyPad_Atrisk,Alt, Space, CapsLock, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, NumLock, ScrollLock, Home, UpArrow, PageUp, KeyPad_Minus, LeftArrow, RightArrow, KeyPad_Plus, End, DownArrow, PageDown, Insert, Delete, F11, F12
+*/

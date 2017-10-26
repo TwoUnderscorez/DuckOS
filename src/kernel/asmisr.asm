@@ -1,22 +1,25 @@
 global temp
 
+; ISR definition for interrupts without an err code
 %macro ISR_NOERRCODE 1
 	global isr%1
 	isr%1:
-		cli
-	push byte 0
-	push byte %1
-	jmp isr_common_stub
+		cli				; disable hardware interrupts
+		push byte 0		; push 0 as err code
+		push byte %1	; push int num
+		jmp isr_common_stub
 %endmacro
 
+; ISR definition for interrupts with an err code
 %macro ISR_ERRCODE 1
 	global isr%1
 	isr%1:
-		cli
-		push byte %1
-	jmp isr_common_stub
+		cli				; disable hardware interrupts
+		push byte %1	; push int num, int errcode was already pushed by the cpu
+		jmp isr_common_stub
 %endmacro
 
+; ISR definitions
 ISR_NOERRCODE 0
 ISR_NOERRCODE 1
 ISR_NOERRCODE 2
@@ -277,12 +280,14 @@ ISR_NOERRCODE 255
 extern isr_handler
 
 isr_common_stub:
-	pusha
+	pusha			; push EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI
+					; used to remember register states as well as to pass registers as args
+					; to isr_handler
 
-	mov ax, ds
+	mov ax, ds		; remeber org DataSeg
 	push eax
 
-	mov ax, 0x10
+	mov ax, 0x10	; set DataSeg to kernel
 	mov ds, ax
 	mov es, ax
 	mov fs, ax
@@ -290,14 +295,14 @@ isr_common_stub:
 
 	call isr_handler
 
-	pop ebx
+	pop ebx			; restore DataSeg
 	mov ds, bx
 	mov es, bx
 	mov fs, bx
 	mov gs, bx
 
-	popa
+	popa			; restore registers
 
-	add esp, 8
-	sti
-	iret
+	add esp, 8		; pop int num and int err code from the stack
+	sti				; enable hardware interrupts
+	iret			; interrupt return
