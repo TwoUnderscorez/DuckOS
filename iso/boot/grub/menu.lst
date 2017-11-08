@@ -2,4 +2,4 @@ default 0
 timeout 3
 
 title DuckOS
-kernel /kernel/kernel.bin
+kernel /kernel/kernel.sys

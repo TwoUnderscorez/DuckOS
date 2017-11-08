@@ -1,7 +1,7 @@
 CC:=gcc
 CFLAGS:=-c -Wall -fno-stack-protector -m32
 LD:=ld
-LDFLAGS:=-T linker.ld -o kernel.bin -m elf_i386
+LDFLAGS:=-T linker.ld -o kernel.sys -m elf_i386
 ASM:=nasm
 ASMFLAGS:=-f elf
 
@@ -39,4 +39,4 @@ isr.o:
 	$(CC) $(CFLAGS) kernel/isr.c
 
 clean:
-	$(shell rm -rf *.o kernel.bin)
+	$(shell rm -rf *.o kernel.sys)

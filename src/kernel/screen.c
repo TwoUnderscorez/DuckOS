@@ -14,6 +14,7 @@ void screen_clear(){
 	}
 	x=0;
 	y=0;
+	set_cursor_position(0, 0);
 }
 
 // Scrolls the screen
@@ -22,8 +23,7 @@ void screen_scroll(){
 	for(i=160;i<4000;i++){
 		vidmem[i-160]=vidmem[i];
 	}
-    i = 160*24;
-    for(i;i<4000;i+=2) {
+    for(i= 160*24;i<4000;i+=2) {
 		vidmem[i]=0x20;
 		vidmem[i+1]=0x07;
 	}
