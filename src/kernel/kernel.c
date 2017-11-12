@@ -1,10 +1,10 @@
+#include "kernel.h"
 #include "screen.h"
 #include "descriptors.h"
 #include "keyboard.h"
+#include "asmio.h"
 
-void free_write();
-
-int kmain(void *mbd, unsigned int magic){
+int kmain(multiboot_information_t * mbd, unsigned int magic){
     int i = 0;
     while(i++<50000000);
 	screen_clear();
@@ -39,4 +39,3 @@ void free_write() {
         i=0;
     }
 }
-

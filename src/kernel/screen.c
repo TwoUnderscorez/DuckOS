@@ -23,7 +23,7 @@ void screen_scroll(){
 	for(i=160;i<4000;i++){
 		vidmem[i-160]=vidmem[i];
 	}
-    for(i= 160*24;i<4000;i+=2) {
+    for(i=160*24;i<4000;i+=2) {
 		vidmem[i]=0x20;
 		vidmem[i+1]=0x07;
 	}
@@ -81,14 +81,14 @@ void screen_print(char *string){
 
 // Sets the cursor position
 void set_cursor_position(int row, int col) {
-    unsigned short position=(row*80) + col;				//calc posotion and save it in a WORD
+    unsigned short position = ( row*80) + col;				//calc posotion and save it in a WORD
  
     // cursor LOW port to vga INDEX register
     out_byte(0x3D4, 0x0F);
     out_byte(0x3D5, (unsigned char)(position&0xFF));		//get low BYTE of WORD
     // cursor HIGH port to vga INDEX register
     out_byte(0x3D4, 0x0E);
-    out_byte(0x3D5, (unsigned char )((position>>8)&0xFF));	//get high BYTE of WORD
+    out_byte(0x3D5, (unsigned char)((position>>8)&0xFF));	//get high BYTE of WORD
  }
 
  // int to ASCII
