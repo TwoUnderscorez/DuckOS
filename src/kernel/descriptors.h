@@ -264,10 +264,10 @@ extern void isr255();
 
 // A struct that represents a line in the GDT
 struct gdt_entry_struct { 
-    unsigned short limit_low;
-    unsigned short base_low;
+    unsigned short limit_low; // Limit is the lenth of the segment
+    unsigned short base_low; // Base is the start address if the segment
     unsigned char  base_middle;
-    unsigned char  access;
+    unsigned char  access; // Access byte (DPL, Executable, Direction/Conforming, Readable/Writabl)
     unsigned char  granularity; // 4 bits of the limit and 4 bits which are flags
     unsigned char  base_high;
 } __attribute__((packed)); //No padding
@@ -284,10 +284,10 @@ typedef struct gdt_ptr_struct gdt_ptr_t;
 
 // A struct that represents a line in the IDT
 struct idt_entry_struct {
-    unsigned short base_low;
-    unsigned short selector;
+    unsigned short base_low; // Base is the function to be called when the interrupt occurs
+    unsigned short selector; // Specifies the CodeSeg in the GDT to switch to in order to handle the interrupt
     unsigned char  always0;
-    unsigned char  flags;
+    unsigned char  flags; // DPL, cpu mode
     unsigned short base_high;
 } __attribute__((packed));
 
@@ -308,4 +308,3 @@ void idt_set_gate(int index,unsigned int base, unsigned short selector, unsigned
 void idt_setup();
 
 #endif
-

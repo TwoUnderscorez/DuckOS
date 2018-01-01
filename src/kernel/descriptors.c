@@ -31,7 +31,7 @@ void gdt_setup() {
 	gdt_write((unsigned int)&gdt_ptr);
 }
 
-// Prepares a idt_entry_t for the IDT using the givem args
+// Set interrupt number (specified by int index) data
 void idt_set_gate(int index,unsigned int base, unsigned short selector, unsigned char flags) {
 	idt_entries[index].base_low = base & 0xFFFF;
 	idt_entries[index].base_high = (base >> 16) & 0xFFFF;
@@ -45,7 +45,7 @@ void idt_setup() {
 	idt_ptr_t idt_ptr;
 	idt_ptr.limit=sizeof(idt_entry_t)*256-1;
 	idt_ptr.base=(unsigned int)&idt_entries;
-	//     int num,      the function, GDT, flags P = 1, DPL = 0; 
+	//     int num,      the function, GDT, flags DPL = 0; 
 	idt_set_gate(0,(unsigned int)isr0,0x08,0x8e);
 	#pragma region idt_set_gates
 	idt_set_gate(1,(unsigned int)isr1,0x08,0x8e);

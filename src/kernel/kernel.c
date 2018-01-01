@@ -1,40 +1,40 @@
 #include "kernel.h"
-#include "screen.h"
 #include "descriptors.h"
-#include "keyboard.h"
-#include "asmio.h"
+#include "../drivers/screen.h"
+#include "../drivers/keyboard.h"
+#include "../asm/asmio.h"
 
 int kmain(multiboot_information_t * mbd, unsigned int magic){
     int i = 0;
     while(i++<50000000);
 	screen_clear();
 	if (magic!=0x2BADB002){
-		screen_print("Invalid multiboot header.");
+		puts("Invalid multiboot header.");
 		return -1;
 	}
-	screen_print("Welcome to DuckOS!!!\n");
-	screen_print("Setting up the GDT.\n");
+	puts("Welcome to DuckOS!!!\n");
+	puts("Setting up the GDT.\n");
 	gdt_setup();
-	screen_print("GDT set.\n");
-	screen_print("Setting up the IDT...\n");
+	puts("GDT set.\n");
+	puts("Setting up the IDT...\n");
 	idt_setup();
-	screen_print("IDT set.\n");    
-	screen_print("Sending interrupt.\n");
+	puts("IDT set.\n");
+	puts("Sending interrupt.\n");
 	__asm__("int $0x00");
 	__asm__("int $0x80");
-    screen_print("Press any key to enter free write mode.\n");
+    puts("Press any key to enter free write mode.\n");
     getc();
     free_write();
 	return 0;
 }
 
 void free_write() {
-    screen_clear();
+	screen_clear();
     char c;
     int i;
     while(1) {
         c = getc();
-        screen_print_char(c);
+        putc(c);
         while(i++<100000);
         i=0;
     }

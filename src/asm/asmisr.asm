@@ -284,6 +284,7 @@ isr_common_stub:
 					; used to remember register states as well as to pass registers as args
 					; to isr_handler
 
+	xor eax, eax
 	mov ax, ds		; remeber org DataSeg
 	push eax
 

@@ -1,42 +1,49 @@
 CC:=gcc
-CFLAGS:=-c -Wall -fno-stack-protector -m32
+CFLAGS:=-c -Wall -Wno-unknown-pragmas -fno-builtin -Wno-char-subscripts -fno-stack-protector -m32 
 LD:=ld
 LDFLAGS:=-T linker.ld -o kernel.sys -m elf_i386
 ASM:=nasm
 ASMFLAGS:=-f elf
 
 all: kernel.o boot.o
-	$(LD) $(LDFLAGS) kernel.o boot.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o 
+	$(LD) $(LDFLAGS) kernel.o boot.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o libc.o string.o
 
-kernel.o: screen.o keyboard.o asmio.o descriptors.o
+kernel.o: screen.o keyboard.o asmio.o descriptors.o libc.o
 	$(CC) $(CFLAGS) kernel/kernel.c
 
 boot.o: kernel.o
 	$(ASM) $(ASMFLAGS) -o boot.o boot/boot.asm
 
 gdt.o:
-	$(ASM) $(ASMFLAGS) -o gdt.o kernel/gdt.asm
+	$(ASM) $(ASMFLAGS) -o gdt.o asm/gdt.asm
 
 idt.o: isr.o
-	$(ASM) $(ASMFLAGS) -o idt.o kernel/idt.asm
+	$(ASM) $(ASMFLAGS) -o idt.o asm/idt.asm
 
 asmisr.o:
-	$(ASM) $(ASMFLAGS) -o asmisr.o kernel/asmisr.asm
+	$(ASM) $(ASMFLAGS) -o asmisr.o asm/asmisr.asm
 
 descriptors.o: asmisr.o gdt.o idt.o 
 	$(CC) $(CFLAGS) kernel/descriptors.c
 
-screen.o:
-	$(CC) $(CFLAGS) kernel/screen.c
+screen.o: string.o
+	$(CC) $(CFLAGS) drivers/screen.c
     
 keyboard.o:
-	$(CC) $(CFLAGS) kernel/keyboard.c
+	$(CC) $(CFLAGS) drivers/keyboard.c
     
 asmio.o:
-	$(ASM) $(ASMFLAGS) -o asmio.o kernel/asmio.asm
+	$(ASM) $(ASMFLAGS) -o asmio.o asm/asmio.asm
 
 isr.o:
 	$(CC) $(CFLAGS) kernel/isr.c
 
+string.o:
+	$(CC) $(CFLAGS) libs/string.c
+
+libc.o:
+	$(CC) $(CFLAGS) libs/libc.c
+
 clean:
 	$(shell rm -rf *.o kernel.sys)
+	$(shell rm ../os.iso)

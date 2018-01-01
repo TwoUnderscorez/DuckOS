@@ -1,5 +1,5 @@
 #include "keyboard.h"
-#include "asmio.h"
+#include "../asm/asmio.h"
 
 //key down only
 char scanducks[181] =

@@ -2,8 +2,11 @@ global in_byte
 global out_byte
 global in_word
 global out_word
+global asmcli
+global asmsti
 
 ; IN/OUT WORD/BYTE implemented for CDECL
+; cli, sti
 
 in_byte:
     push    ebp
@@ -39,4 +42,12 @@ out_word:
     mov     eax, [ebp + 12] ; unsigned short data
     out     dx, ax
     pop     ebp
+    ret
+
+asmcli:
+    cli
+    ret
+
+asmsti:
+    sti
     ret

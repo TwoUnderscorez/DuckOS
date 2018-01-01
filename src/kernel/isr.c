@@ -1,9 +1,9 @@
 #include "isr.h"
-#include "screen.h"
+#include "../drivers/screen.h"
 
 void isr_handler(registers_t regs)
 {
-	screen_print("Recieved interrupt: ");
+	puts("Recieved interrupt: ");
 	screen_print_int(regs.int_no,16);
-	screen_print("\n");
+	puts("\n");
 }
