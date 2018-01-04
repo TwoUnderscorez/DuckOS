@@ -72,14 +72,91 @@ char strcmp(char *str1, char *str2){
 	return *str1 - *str2;
 }
 
+// Compares at most the first num bytes of str1 and str2
+char strncmp(char *str1, char *str2, unsigned int num) {
+	while( *(str1) != 0 && *(str2) != 0 && *(str1) == *(str2) ){
+		++str1;
+		++str2;
+		if(num-- < 1)
+			break;
+	}
+	return *str1 - *str2;
+}
+
 // Copies str2 to str1
 void strcpy(char *str1, char *str2){
 	while(*str2 != '\0') *(str1++) = *(str2++);
 }
 
+// Copies up to n characters from the string pointed to, by src to dest. 
+void strncpy(char *str1, char *str2, unsigned int num){
+	while(*str2 != '\0' && num-- > 0) *(str1++) = *(str2++);
+}
+
 // Returns length of string
-int strlen(char *str){
+unsigned int strlen(char *str){
 	int length = 0;
 	while(*str++) ++length;
 	return length;
+}
+
+// Copies n characters from memory area str2 to memory area str1
+void *memcpy(void *dst, void *src, int count){
+	void *temp_dst = dst;
+	while(count--) *(char *)dst++ = *(char *)src++;
+	return temp_dst;
+}
+
+// Copies the character c (an unsigned char) to the first n characters of the string pointed to, by the argument str.
+void *memset(void *dst, char data, int count){
+	void *temp_dst = dst;
+	while(count--) *(char *)dst++ = data;
+	return temp_dst;
+}
+
+// Appends the string pointed to by src to the end of the string pointed to by dest.
+char *strcat(char *dst, const char *src) {
+	return strncat(*dst, *src, strlen(*src));
+}
+
+// Appends the string pointed to by src to the end of the string pointed to by dest up to n characters long
+char *strncat(char *dst, const char *src, unsigned int n) {
+	memcpy(*(dst+strlen(*dst)), *src, n);
+	return *dst;
+}
+
+//Scans str1 for the first occurrence of any of the characters that are part of str2, returning the number of characters of str1 read before this first occurrence.
+unsigned int strcspn(const char* str1, const char* str2) {
+	unsigned int n;
+	const char* p;
+	for(n=0; *str1; str1++, n++) {
+		for(p=str2; *p && *p != *str1; p++)
+			;
+		if (!*p)
+			break;
+	}
+	return n;
+}
+
+// finds the first occurrence of the substring substr in the string str. The terminating '\0' characters are not compared.
+char *strstr(char *str, char *substr)
+{
+    int len = strlen(substr);
+    char *ref = substr;
+    while(*str && *ref)
+    {
+        if (*str++ == *ref)
+        {
+            ref++;
+        }
+        if(!*ref)
+        {
+            return (str - len);
+        }
+        if (len == (ref - substr))
+        {
+            ref = substr;
+        }
+    }
+    return '\0';
 }

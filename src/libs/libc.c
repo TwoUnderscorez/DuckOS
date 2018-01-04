@@ -1,13 +1,9 @@
 #include "libc.h"
 
-void *memcpy(void *dst, void *src, int count){
-	void *temp_dst = dst;
-	while(count--) *(char *)dst++ = *(char *)src++;
-	return temp_dst;
-}
+void* 	calloc  (unsigned int nitems, unsigned int size) {return '\0';}
+void*	malloc	(unsigned int size) {return '\0';}
+void*	realloc	(void* ptr, unsigned int size) {return '\0';}
+void	free	(void* ptr) {}
+void	abort	(void) {}
+void	exit	(int exit_code) {}
 
-void *memset(void *dst, char data, int count){
-	void *temp_dst = dst;
-	while(count--) *(char *)dst++ = data;
-	return temp_dst;
-}

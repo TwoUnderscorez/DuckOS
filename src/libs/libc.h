@@ -1,7 +1,10 @@
 #ifndef LIBC_H
 #define LIBC_H
 
-void *memcpy(void *dst, void *src, int count);
-void *memset(void *dst, char data, int count);
-
+void* 	calloc  (unsigned int nitems, unsigned int size);
+void*	malloc	(unsigned int size);
+void*	realloc	(void* ptr, unsigned int size);
+void	free	(void* ptr);
+void	abort	(void);
+void	exit	(int exit_code);
 #endif

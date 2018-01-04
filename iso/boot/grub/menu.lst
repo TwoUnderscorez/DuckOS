@@ -1,5 +1,5 @@
 default 0
-timeout 3
+timeout 1
 
 title DuckOS
 kernel /kernel/kernel.sys
