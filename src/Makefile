@@ -6,7 +6,7 @@ ASM:=nasm
 ASMFLAGS:=-f elf
 
 all: kernel.o boot.o
-	$(LD) $(LDFLAGS) kernel.o boot.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o libc.o string.o
+	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o libc.o string.o
 
 kernel.o: screen.o keyboard.o asmio.o descriptors.o libc.o
 	$(CC) $(CFLAGS) kernel/kernel.c

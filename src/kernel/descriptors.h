@@ -1,8 +1,8 @@
 #ifndef DESCRIPTORS_H
 #define DESCRIPTORS_H
 
-extern void gdt_write(unsigned int);
-extern void idt_write(unsigned int);
+extern void gdt_write(unsigned int GDT_descriptor);
+extern void idt_write(unsigned int IDT_descriptor);
 #pragma region isrs
 extern void isr0();
 extern void isr1();
@@ -265,9 +265,9 @@ extern void isr255();
 // A struct that represents a line in the GDT
 struct gdt_entry_struct { 
     unsigned short limit_low; // Limit is the lenth of the segment
-    unsigned short base_low; // Base is the start address if the segment
+    unsigned short base_low; // Base is the start address of the segment
     unsigned char  base_middle;
-    unsigned char  access; // Access byte (DPL, Executable, Direction/Conforming, Readable/Writabl)
+    unsigned char  access; // Access byte (DPL, Executable, Direction/Conforming, Readable/Writable)
     unsigned char  granularity; // 4 bits of the limit and 4 bits which are flags
     unsigned char  base_high;
 } __attribute__((packed)); //No padding

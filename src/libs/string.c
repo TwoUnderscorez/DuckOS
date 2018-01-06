@@ -40,7 +40,7 @@ char * itoa( int value, char * str, int base )
 }
 
 // Ascii TO Int
-int atoi(const char *c)
+int atoi(char *c)
 {
     int value = 0;
     int sign = 1;
@@ -59,8 +59,8 @@ int atoi(const char *c)
 }
 
 // Checks whether a char is a digit
-char isdigit(char * c){
-    return ( (*c>='0') && (*c<='9') );
+char isdigit(char c){
+    return ( (c>='0') && (c<='9') );
 }
 
 // Checks whether two strings are equal
@@ -115,20 +115,20 @@ void *memset(void *dst, char data, int count){
 }
 
 // Appends the string pointed to by src to the end of the string pointed to by dest.
-char *strcat(char *dst, const char *src) {
-	return strncat(*dst, *src, strlen(*src));
+char *strcat(char *dst, char *src) {
+	return strncat(dst, src, strlen(src));
 }
 
 // Appends the string pointed to by src to the end of the string pointed to by dest up to n characters long
-char *strncat(char *dst, const char *src, unsigned int n) {
-	memcpy(*(dst+strlen(*dst)), *src, n);
-	return *dst;
+char *strncat(char *dst, char *src, unsigned int n) {
+	memcpy((dst+strlen(dst)), src, n);
+	return dst;
 }
 
 //Scans str1 for the first occurrence of any of the characters that are part of str2, returning the number of characters of str1 read before this first occurrence.
-unsigned int strcspn(const char* str1, const char* str2) {
+unsigned int strcspn(char* str1, char* str2) {
 	unsigned int n;
-	const char* p;
+	char* p;
 	for(n=0; *str1; str1++, n++) {
 		for(p=str2; *p && *p != *str1; p++)
 			;
