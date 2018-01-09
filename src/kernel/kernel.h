@@ -15,7 +15,7 @@ struct multiboot_information_struct {
     unsigned short syms : 12;
     unsigned char mmap_lenght : 4;
     unsigned char mmap_addr : 4;
-    unsigned char drives_lenght : 4;
+    unsigned char drives_length : 4;
     unsigned char drives_addr : 4;
     unsigned char config_table : 4;
     unsigned char bootloader_name : 4;

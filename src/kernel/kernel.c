@@ -1,19 +1,18 @@
 #include "kernel.h"
 #include "descriptors.h"
+#include "memory.h"
 #include "../drivers/screen.h"
 #include "../drivers/keyboard.h"
 #include "../asm/asmio.h"
 
 int kmain(multiboot_information_t * mbd, unsigned int magic){
-    int i = 0;
-    while(i++<50000000);
 	screen_clear();
 	if (magic!=0x2BADB002){
 		puts("Invalid multiboot header.");
 		return -1;
 	}
 	puts("Welcome to DuckOS!!!\n");
-	puts("Setting up the GDT.\n");
+	puts("Setting up the GDT...\n");
 	gdt_setup();
 	puts("GDT set.\n");
 	puts("Setting up the IDT...\n");
@@ -22,7 +21,15 @@ int kmain(multiboot_information_t * mbd, unsigned int magic){
 	puts("Sending interrupt.\n");
 	__asm__("int $0x00");
 	__asm__("int $0x80");
-    puts("Press any key to enter free write mode.\n");
+	puts("Initialzing memory...\n");
+	init_memory();
+	puts("Memory set.\n");
+	int * ptr;
+	ptr = 0x1FFF00;
+	*ptr = 35;
+	screen_print_int(*ptr, 10);
+	puts("\n");
+	puts("Press any key to enter free write mode.\n");
     getc();
     free_write();
 	return 0;

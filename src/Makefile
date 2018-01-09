@@ -6,13 +6,19 @@ ASM:=nasm
 ASMFLAGS:=-f elf
 
 all: kernel.o boot.o
-	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o libc.o string.o
+	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o libc.o string.o memoryasm.o memory.o
 
-kernel.o: screen.o keyboard.o asmio.o descriptors.o libc.o
+kernel.o: screen.o keyboard.o asmio.o descriptors.o libc.o memory.o
 	$(CC) $(CFLAGS) kernel/kernel.c
 
 boot.o: kernel.o
 	$(ASM) $(ASMFLAGS) -o boot.o boot/boot.asm
+
+memory.o: memoryasm.o
+	$(CC) $(CFLAGS) kernel/memory.c
+
+memoryasm.o:
+	$(ASM) $(ASMFLAGS) -o memoryasm.o asm/memory.asm
 
 gdt.o:
 	$(ASM) $(ASMFLAGS) -o gdt.o asm/gdt.asm
