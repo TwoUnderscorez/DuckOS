@@ -2,4 +2,5 @@ default 0
 timeout 1
 
 title DuckOS
+echo Loading kernel...
 kernel /kernel/kernel.sys

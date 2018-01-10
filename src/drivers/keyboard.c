@@ -43,6 +43,26 @@ char getc(){
     return c;
 }
 
+char * gets(char * buff){
+    char c;
+    c = getc();
+    while(c!='\n'){
+        *(buff++) = c;
+        c = getc();
+    }
+    return &buff;
+}
+
+char * getns(char * buff, unsigned int n){
+    char c;
+    c = getc();
+    while(c!='\n' && n-- > 1){
+        *(buff++) = c;
+        c = getc();
+    }
+    return &buff;
+}
+
 int get_key() {
     return -1;
 }

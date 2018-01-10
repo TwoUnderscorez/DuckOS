@@ -1,26 +1,10 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 #include "kernel.h"
+#include "multiboot.h"
 #define MMAP_GET_NUM 0
 #define MMAP_GET_ADDR 1
 #define PAGE_SIZE 4096
-
-typedef enum {
-	MULTIBOOT_MEMORY_USABLE = 1,
-	MULTIBOOT_MEMORY_RESERVED = 2,
-	MULTIBOOT_MEMORY_ACPI_RECLAIMABLE = 3,
-	MULTIBOOT_MEMORY_ACPI_NVS = 4,
-	BAD = 5
-} memory_block_type;
-
-struct multiboot_mmap_entry {
-    unsigned int size;
-    unsigned long long addr;
-    unsigned long long len;
-    memory_block_type type;
-};
-typedef struct multiboot_mmap_entry multiboot_memory_map_t;
-
 
 struct page_directory_pointer_table_entry {
     unsigned char present : 1;
@@ -76,6 +60,6 @@ typedef struct page_table_entry page_table_entry_t;
 extern void loadPageDirectoryAsm(unsigned int* ptr);
 extern void enablePagingAsm(void);
 extern void enablePaePagingAsm(void);
-void init_memory();
-
+void init_memory(multiboot_info_t * mbd);
+void dump_mmap(void);
 #endif

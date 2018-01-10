@@ -6,9 +6,9 @@ ASM:=nasm
 ASMFLAGS:=-f elf
 
 all: kernel.o boot.o
-	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o libc.o string.o memoryasm.o memory.o
+	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o libc.o string.o memoryasm.o memory.o heap.o
 
-kernel.o: screen.o keyboard.o asmio.o descriptors.o libc.o memory.o
+kernel.o: screen.o keyboard.o asmio.o descriptors.o libc.o memory.o heap.o
 	$(CC) $(CFLAGS) kernel/kernel.c
 
 boot.o: kernel.o
@@ -49,6 +49,9 @@ string.o:
 
 libc.o:
 	$(CC) $(CFLAGS) libs/libc.c
+
+heap.o:
+	$(CC) $(CFLAGS) kernel/heap.c
 
 clean:
 	$(shell rm -rf *.o kernel.sys)

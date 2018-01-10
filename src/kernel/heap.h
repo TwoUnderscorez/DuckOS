@@ -1,0 +1,16 @@
+#ifndef HEAP_H
+#define HEAP_H
+
+struct memory_block_header {
+    char used;
+    int length;
+    struct memory_block_header * next;
+};
+
+typedef struct memory_block_header memory_block_header_t;
+
+void init_heap(void);
+void *malloc(unsigned int size);
+void free(void * ptr);
+
+#endif
