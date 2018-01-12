@@ -14,7 +14,7 @@ struct page_directory_pointer_table_entry {
     unsigned char caching : 1;
     unsigned char accessed : 1;
     unsigned char always0 : 1; 
-    unsigned char size : 1; // 0 for 4kb
+    unsigned char size : 1;
     unsigned char ignored : 1;
     unsigned char available : 3;
     unsigned int page_directory_table_address : 20;
@@ -57,9 +57,11 @@ struct page_table_entry {
 
 typedef struct page_table_entry page_table_entry_t;
 
-extern void loadPageDirectoryAsm(unsigned int* ptr);
+extern void loadPageDirectoryAsm(unsigned int * ptr);
 extern void enablePagingAsm(void);
 extern void enablePaePagingAsm(void);
 void init_memory(multiboot_info_t * mbd);
 void dump_mmap(void);
+unsigned int kalloc_frame();
+void kfree_frame(unsigned int page_frame_addr);
 #endif

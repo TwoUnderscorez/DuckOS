@@ -1,11 +1,12 @@
 #ifndef HEAP_H
 #define HEAP_H
 
+// Every block in the heap will start with this header
 struct memory_block_header {
     char used;
     int length;
     struct memory_block_header * next;
-};
+} __attribute__((__packed__));
 
 typedef struct memory_block_header memory_block_header_t;
 

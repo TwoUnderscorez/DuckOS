@@ -6,4 +6,3 @@ void*	realloc	(void* ptr, unsigned int size) {return '\0';}
 void	free	(void* ptr) {}
 void	abort	(void) {}
 void	exit	(int exit_code) {}*/
-

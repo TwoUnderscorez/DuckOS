@@ -1,10 +1,11 @@
 #include "heap.h"
+#include "kernel.h"
 #include "../drivers/screen.h"
 unsigned int heap_start;
 unsigned int heap_end;
 
 void init_heap(void) {
-    heap_start = 0x10C000;
+    heap_start = (unsigned int)endkernel + 0x1000;
     heap_end = 0x200000;
     memory_block_header_t * ptr = (memory_block_header_t *)heap_start;
     ptr->length = -1;
@@ -14,6 +15,7 @@ void init_heap(void) {
 
 void *malloc(unsigned int size) {
     memory_block_header_t * ptr = (memory_block_header_t *)heap_start;
+    // First fit algorithm
     while((ptr != 0) && (ptr->used || ptr->length < size ) ){
         ptr = ptr->next;
     }

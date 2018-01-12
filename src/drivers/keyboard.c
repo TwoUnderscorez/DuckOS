@@ -37,6 +37,19 @@ char scanducks[181] =
     0,	/* All other keys are undefined */
 };
 
+static char get_scanduck_from_keyboard() {
+    static char c, ex;
+    c = in_byte(0x60);
+    do {
+        ex = in_byte(0x60);
+        if(ex!=c) {		    //if what I pressed a split second ago != what I pressed now
+            c=ex;		    //get scan code
+            if(c>0)
+                return c;   //return c
+        }
+    } while(1);
+}
+
 char getc(){
     char c;
     c = scanducks[get_scanduck_from_keyboard()];
@@ -50,7 +63,7 @@ char * gets(char * buff){
         *(buff++) = c;
         c = getc();
     }
-    return &buff;
+    return buff;
 }
 
 char * getns(char * buff, unsigned int n){
@@ -60,26 +73,12 @@ char * getns(char * buff, unsigned int n){
         *(buff++) = c;
         c = getc();
     }
-    return &buff;
+    return buff;
 }
 
 int get_key() {
     return -1;
 }
-
-char get_scanduck_from_keyboard() {
-    static char c, ex;
-    c = in_byte(0x60);
-    do {
-        ex = in_byte(0x60);
-        if(ex!=c) {		    //if what I pressed a split second ago != what I pressed now
-            c=ex;		    //get scan code
-            if(c>0)
-                return c;   //return c
-        }
-    } while(1);
-}
-
 
 /*
 Keys:

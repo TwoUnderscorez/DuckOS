@@ -29,20 +29,29 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	puts("Initialzing heap...\n");
 	init_heap();
 	puts("Heap initialized.\n");
-	int * ptr = malloc(sizeof(int));
-	screen_print_int(ptr, 16);
+	puts("Allocating 20 page frames... addrs: ");
+	unsigned int * arr = malloc(sizeof(int)*20);
+	unsigned int i;
+	for(i = 0; i < 20; i++) {
+		arr[i] = kalloc_frame();
+		screen_print_int(arr[i], 16);
+		puts(" ");
+	}
 	puts("\n");
-	int * ptr1 = malloc(sizeof(int));
-	screen_print_int(ptr1, 16);
+	puts("Freeing 2 page frames... addrs: ");
+	for(i = 0; i < 2; i++) {
+		kfree_frame(arr[i]);
+		screen_print_int(arr[i], 16);
+		puts(" ");
+	}
 	puts("\n");
-	free(ptr1);
-	int * ptr2 = malloc(sizeof(int));
-	screen_print_int(ptr2, 16);
+	puts("Allocating 4 page frames... addrs: ");
+	for(i = 0; i < 4; i++) {
+		screen_print_int(kalloc_frame(), 16);
+		puts(" ");
+	}
 	puts("\n");
-	free(ptr);
-	int * ptr3 = malloc(sizeof(int));
-	screen_print_int(ptr3, 16);
-	puts("\n");
+	free(arr);
 	puts("Press any key to enter free write mode.\n");
     getc();
     free_write();
