@@ -10,6 +10,7 @@ static task_t otherTask;
 
  
 void otherMain() {
+    while(1); // temp
     puts("Hello from other task!\n");
     asm volatile("int $0x82");
 }
@@ -31,9 +32,9 @@ void createTask(task_t *task, void (*main)(), unsigned int flags, unsigned int *
     task->regs.edx = 0;
     task->regs.esi = 0;
     task->regs.edi = 0;
-    task->regs.cs = 0x08;
-    task->regs.ss = 0x10;
-    task->regs.ds = 0x10;
+    task->regs.cs = 0x18 | 0x3;
+    task->regs.ss = 0x20 | 0x3;
+    task->regs.ds = 0x20 | 0x3;
     task->regs.eflags = flags;
     task->regs.eip = (unsigned int) main;
     task->regs.cr3 = (unsigned int) pagedir;

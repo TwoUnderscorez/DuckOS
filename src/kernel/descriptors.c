@@ -1,9 +1,13 @@
 #include "descriptors.h"
+#include "../libs/string.h"
+#include "../asm/asmio.h"
 
 // Define GDT
-gdt_entry_t gdt_entries[5];
+gdt_entry_t gdt_entries[6];
 // Define IDT
 idt_entry_t idt_entries[256];
+// Define TSS
+strtss_t sys_tss;
 
 // Prepares a gdt_entry_t for the GDT using the givem args
 gdt_entry_t gdt_set_gate(unsigned int base, unsigned int limit, unsigned char access, unsigned char granularity) {
@@ -28,6 +32,7 @@ void gdt_setup() {
 	gdt_entries[2]=gdt_set_gate(0, 0xFFFFFFFF, 0x92, 0xC0);	// DataSeg for the kernel
 	gdt_entries[3]=gdt_set_gate(0, 0xFFFFFFFF, 0xFA, 0xC0);	// CodeSeg for UserLand
 	gdt_entries[4]=gdt_set_gate(0, 0xFFFFFFFF, 0xF2, 0xC0); // DataSeg for UserLand
+	write_tss(0x5, 0x10, 0x0);
 	gdt_write((unsigned int)&gdt_ptr);
 }
 
@@ -305,4 +310,36 @@ void idt_setup() {
 	idt_set_gate(255,(unsigned int)isr255,0x08,0x8e);
 	#pragma endregion
 	idt_write((unsigned int)&idt_ptr);
+	tss_flush(); // temp
+	while(1);	 // temp
 }
+
+
+void write_tss(unsigned int num, unsigned short ss0, unsigned int esp0)
+{
+   unsigned int base = (unsigned int) &sys_tss;
+   unsigned int limit = (unsigned int)(base + sizeof(strtss_t));
+
+   // Add TSS descriptor's address to the GDT.
+   gdt_entries[5] = gdt_set_gate(base, limit, 0xE9, 0x00);
+
+   // Ensure the descriptor is initially zero.
+   memset((void *)&sys_tss, 0, (int)sizeof(strtss_t));
+
+   sys_tss.ss0  = ss0;  // Set the kernel stack segment.
+   sys_tss.esp0 = esp0; // Set the kernel stack pointer.
+
+   // Here we set the cs, ss, ds, es, fs and gs entries in the TSS. These specify what
+   // segments should be loaded when the processor switches to kernel mode. Therefore
+   // they are just our normal kernel code/data segments - 0x08 and 0x10 respectively,
+   // but with the last two bits set, making 0x0b and 0x13. The setting of these bits
+   // sets the RPL (requested privilege level) to 3, meaning that this TSS can be used
+   // to switch to kernel mode from ring 3.
+   sys_tss.cs = 0x0b;
+   sys_tss.ss = sys_tss.ds = sys_tss.es = sys_tss.fs = sys_tss.gs = 0x13;
+} 
+
+void set_kernel_stack(unsigned int stack)
+{
+   sys_tss.esp0 = stack;
+} 

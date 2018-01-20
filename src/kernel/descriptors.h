@@ -2,6 +2,7 @@
 #define DESCRIPTORS_H
 
 extern void gdt_write(unsigned int GDT_descriptor);
+extern void tss_flush(void);
 extern void idt_write(unsigned int IDT_descriptor);
 #pragma region isrs
 extern void isr0();
@@ -301,10 +302,43 @@ struct idt_ptr_struct{
 
 typedef struct idt_ptr_struct idt_ptr_t;
 
+struct strtss {
+   unsigned int prev_tss;   // The previous TSS - if we used hardware task switching this would form a linked list.
+   unsigned int esp0;       // The stack pointer to load when we change to kernel mode.
+   unsigned int ss0;        // The stack segment to load when we change to kernel mode.
+   unsigned int esp1;       // Unused...
+   unsigned int ss1;
+   unsigned int esp2;
+   unsigned int ss2;
+   unsigned int cr3;
+   unsigned int eip;
+   unsigned int eflags;
+   unsigned int eax;
+   unsigned int ecx;
+   unsigned int edx;
+   unsigned int ebx;
+   unsigned int esp;
+   unsigned int ebp;
+   unsigned int esi;
+   unsigned int edi;
+   unsigned int es;         // The value to load into ES when we change to kernel mode.
+   unsigned int cs;         // The value to load into CS when we change to kernel mode.
+   unsigned int ss;         // The value to load into SS when we change to kernel mode.
+   unsigned int ds;         // The value to load into DS when we change to kernel mode.
+   unsigned int fs;         // The value to load into FS when we change to kernel mode.
+   unsigned int gs;         // The value to load into GS when we change to kernel mode.
+   unsigned int ldt;        // Unused...
+   unsigned short trap;
+   unsigned short iomap_base;
+} __attribute__((packed));
+
+typedef struct strtss strtss_t;
 
 gdt_entry_t gdt_set_gate(unsigned int base, unsigned int limit, unsigned char access, unsigned char granularity);
 void gdt_setup();
 void idt_set_gate(int index,unsigned int base, unsigned short selector, unsigned char flags);
 void idt_setup();
+void write_tss(unsigned int num, unsigned short ss0, unsigned int esp0);
+void set_kernel_stack(unsigned int stack);
 
 #endif
