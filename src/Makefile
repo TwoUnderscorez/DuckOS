@@ -1,12 +1,12 @@
 CC:=gcc
-CFLAGS:=-c -Wall -Wno-unknown-pragmas -fno-builtin -Wno-char-subscripts -fno-stack-protector -m32 
+CFLAGS:=-c -Wall -Wno-unknown-pragmas -fno-builtin -Wno-char-subscripts -fno-stack-protector -m32
 LD:=ld
 LDFLAGS:=-T linker.ld -o kernel.sys -m elf_i386
 ASM:=nasm
 ASMFLAGS:=-f elf
 
 all: kernel.o boot.o
-	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o
+	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o
 
 kernel.o: screen.o keyboard.o asmio.o descriptors.o memory.o heap.o
 	$(CC) $(CFLAGS) kernel/kernel.c
@@ -41,7 +41,7 @@ keyboard.o:
 asmio.o:
 	$(ASM) $(ASMFLAGS) -o asmio.o asm/asmio.asm
 
-isr.o:
+isr.o: task.o
 	$(CC) $(CFLAGS) kernel/isr.c
 
 string.o:
@@ -52,6 +52,9 @@ libc.o:
 
 heap.o:
 	$(CC) $(CFLAGS) kernel/heap.c
+
+task.o:
+	$(CC) $(CFLAGS) kernel/task.c
 
 clean:
 	$(shell rm -rf *.o kernel.sys)

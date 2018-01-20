@@ -4,9 +4,9 @@ global temp
 %macro ISR_NOERRCODE 1
 	global isr%1
 	isr%1:
-		cli				; disable hardware interrupts
+		;cli				; disable hardware interrupts
 		push byte 0		; push 0 as err code
-		push byte %1	; push int num
+		push %1			; push int num
 		jmp isr_common_stub
 %endmacro
 
@@ -14,8 +14,8 @@ global temp
 %macro ISR_ERRCODE 1
 	global isr%1
 	isr%1:
-		cli				; disable hardware interrupts
-		push byte %1	; push int num, int errcode was already pushed by the cpu
+		;cli				; disable hardware interrupts
+		push %1			; push int num, int errcode was already pushed by the cpu
 		jmp isr_common_stub
 %endmacro
 
@@ -287,6 +287,9 @@ isr_common_stub:
 	xor eax, eax
 	mov ax, ds		; remeber org DataSeg
 	push eax
+	mov eax, cr3
+	push eax		; PDPT
+	xor eax, eax
 
 	mov ax, 0x10	; set DataSeg to kernel
 	mov ds, ax
@@ -296,6 +299,9 @@ isr_common_stub:
 
 	call isr_handler
 
+	xor ebx, ebx
+	pop ebx
+	mov cr3, ebx
 	pop ebx			; restore DataSeg
 	mov ds, bx
 	mov es, bx
@@ -305,5 +311,5 @@ isr_common_stub:
 	popa			; restore registers
 
 	add esp, 8		; pop int num and int err code from the stack
-	sti				; enable hardware interrupts
+	;sti				; enable hardware interrupts
 	iret			; interrupt return

@@ -30,8 +30,10 @@ void init_memory(multiboot_info_t * mymbd) {
         page_tab[i].present = 1;
         page_tab[i].ro_rw = 1;
         page_tab[i].physical_page_address = address>>12;
+        page_tab[i].kernel_user = 0;
         address = address + 0x1000;
     }
+    puts("Enabaling PAE paging...\n");
     enablePaePagingAsm(); 
     loadPageDirectoryAsm((unsigned int *)&page_dir_ptr_tab);
     enablePagingAsm();
