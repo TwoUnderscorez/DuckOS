@@ -10,8 +10,8 @@ static task_t otherTask;
 
  
 void otherMain() {
-    while(1); // temp
     puts("Hello from other task!\n");
+    while(1);
     asm volatile("int $0x82");
 }
  

@@ -20,6 +20,7 @@ void init_memory(multiboot_info_t * mymbd) {
     page_dir[0].ro_rw = 1;
     page_dir[0].size = 1;
     page_dir[0].page_table_address =0;
+    page_dir[0].kernel_user = 1;
     // Map 512 4kb pages (0x200000-0x400000)
     page_dir[1].present = 1;
     page_dir[1].ro_rw = 1;
@@ -30,7 +31,7 @@ void init_memory(multiboot_info_t * mymbd) {
         page_tab[i].present = 1;
         page_tab[i].ro_rw = 1;
         page_tab[i].physical_page_address = address>>12;
-        page_tab[i].kernel_user = 0;
+        page_tab[i].kernel_user = 1;
         address = address + 0x1000;
     }
     puts("Enabaling PAE paging...\n");

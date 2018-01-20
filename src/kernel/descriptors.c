@@ -25,7 +25,7 @@ gdt_entry_t gdt_set_gate(unsigned int base, unsigned int limit, unsigned char ac
 // Setup the GDT
 void gdt_setup() {
 	gdt_ptr_t gdt_ptr;
-	gdt_ptr.limit = (sizeof(gdt_entry_t) * 5) - 1;
+	gdt_ptr.limit = (sizeof(gdt_entry_t) * 6) - 1;
 	gdt_ptr.base  = (unsigned int)&gdt_entries;
 	gdt_entries[0]=gdt_set_gate(0, 0, 0, 0);				// Null descriptor
 	gdt_entries[1]=gdt_set_gate(0, 0xFFFFFFFF, 0x9A, 0xC0);	// CodeSeg for the kernel
@@ -34,6 +34,7 @@ void gdt_setup() {
 	gdt_entries[4]=gdt_set_gate(0, 0xFFFFFFFF, 0xF2, 0xC0); // DataSeg for UserLand
 	write_tss(0x5, 0x10, 0x0);
 	gdt_write((unsigned int)&gdt_ptr);
+	tss_flush();
 }
 
 // Set interrupt number (specified by int index) data
@@ -182,7 +183,7 @@ void idt_setup() {
 	idt_set_gate(127,(unsigned int)isr127,0x08,0x8e);
 	idt_set_gate(128,(unsigned int)isr128,0x08,0x8e);
 	idt_set_gate(129,(unsigned int)isr129,0x08,0x8e);
-	idt_set_gate(130,(unsigned int)isr130,0x08,0x8e);
+	idt_set_gate(130,(unsigned int)isr130,0x0B,0x8e); // Context switch
 	idt_set_gate(131,(unsigned int)isr131,0x08,0x8e);
 	idt_set_gate(132,(unsigned int)isr132,0x08,0x8e);
 	idt_set_gate(133,(unsigned int)isr133,0x08,0x8e);
@@ -310,8 +311,6 @@ void idt_setup() {
 	idt_set_gate(255,(unsigned int)isr255,0x08,0x8e);
 	#pragma endregion
 	idt_write((unsigned int)&idt_ptr);
-	tss_flush(); // temp
-	while(1);	 // temp
 }
 
 
@@ -321,7 +320,7 @@ void write_tss(unsigned int num, unsigned short ss0, unsigned int esp0)
    unsigned int limit = (unsigned int)(base + sizeof(strtss_t));
 
    // Add TSS descriptor's address to the GDT.
-   gdt_entries[5] = gdt_set_gate(base, limit, 0xE9, 0x00);
+   gdt_entries[5] = gdt_set_gate(base, limit, 0x89, 0x00);
 
    // Ensure the descriptor is initially zero.
    memset((void *)&sys_tss, 0, (int)sizeof(strtss_t));

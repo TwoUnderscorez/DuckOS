@@ -20,6 +20,5 @@ void isr_handler(registers_t regs)
 			puts(" ");
 			screen_print_int(regs.err_code, 16);
 			puts("\n");
-			getc();
 	}
 }
