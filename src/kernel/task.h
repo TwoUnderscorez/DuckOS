@@ -2,8 +2,8 @@
 #define TASK_H
 
 #include "isr.h"
-void otherMain(void);
-void initTasking();
+void other_main(void);
+void init_tasking();
  
 struct task {
     registers_t regs;
@@ -12,8 +12,7 @@ struct task {
 
 typedef struct task task_t;
  
-void initTasking();
-void createTask(task_t*, void(*)(), unsigned int, unsigned int*);
+void create_task(task_t*, void(*)(), unsigned int, unsigned int*);
 void roundRobinNext(registers_t * regs);
 
 

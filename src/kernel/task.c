@@ -1,44 +1,48 @@
 #include "task.h"
 #include "memory.h"
 #include "isr.h"
+#include "descriptors.h"
 #include "../libs/string.h"
 #include "../drivers/screen.h"
 
+// A pointer to the running task in the linked list of tasks
 static task_t *runningTask;
+// Represents the kernel task
 static task_t mainTask;
-static task_t otherTask;
+static task_t otherTask; // temp
 
  
-void otherMain() {
-    puts("Hello from other task!\n");
-    while(1);
+void other_main() {
+    puts("Hello from userland!\n");
+    puts("Trapping back to the kernel...\n");
     asm volatile("int $0x82");
 }
  
-void initTasking(registers_t * regs) {
+void init_tasking(registers_t * regs) {
     // Create a task for the kernel
     memcpy(&mainTask.regs, regs, (int)sizeof(registers_t)); // Save kernel task regs
     mainTask.next = &otherTask;
+    set_kernel_stack((unsigned int)regs->kesp);
     // Create the other task
-    createTask(&otherTask, otherMain, mainTask.regs.eflags, (unsigned int*)mainTask.regs.cr3);
+    create_task(&otherTask, other_main, mainTask.regs.eflags, (unsigned int*)mainTask.regs.cr3);
     otherTask.next = &mainTask;
     runningTask = &mainTask;
 }
  
-void createTask(task_t *task, void (*main)(), unsigned int flags, unsigned int *pagedir) {
+void create_task(task_t *task, void (*main)(), unsigned int flags, unsigned int *pagedir) {
     task->regs.eax = 0;
     task->regs.ebx = 0;
     task->regs.ecx = 0;
     task->regs.edx = 0;
     task->regs.esi = 0;
     task->regs.edi = 0;
-    task->regs.cs = 0x18 | 0x3;
-    task->regs.ss = 0x20 | 0x3;
+    task->regs.cs = 0x18 | 0x3; // Userland GDT selectors
+    task->regs.ss = 0x20 | 0x3; // All tasks will run in userland
     task->regs.ds = 0x20 | 0x3;
     task->regs.eflags = flags;
     task->regs.eip = (unsigned int) main;
     task->regs.cr3 = (unsigned int) pagedir;
-    task->regs.useresp = (unsigned int) 0x130000; // Proccess tack
+    task->regs.useresp = (unsigned int) 0x130000; // Proccess' tack
     task->regs.kesp = (unsigned int)mainTask.regs.kesp; // ISR's stack
     task->next = 0;
 }

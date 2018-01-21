@@ -32,9 +32,9 @@ void gdt_setup() {
 	gdt_entries[2]=gdt_set_gate(0, 0xFFFFFFFF, 0x92, 0xC0);	// DataSeg for the kernel
 	gdt_entries[3]=gdt_set_gate(0, 0xFFFFFFFF, 0xFA, 0xC0);	// CodeSeg for UserLand
 	gdt_entries[4]=gdt_set_gate(0, 0xFFFFFFFF, 0xF2, 0xC0); // DataSeg for UserLand
-	write_tss(0x5, 0x10, 0x0);
-	gdt_write((unsigned int)&gdt_ptr);
-	tss_flush();
+	write_tss(0x5, 0x10, 0x0);								// TSS
+	gdt_write((unsigned int)&gdt_ptr);						// Flush GDT
+	tss_flush();											// Flush TSS
 }
 
 // Set interrupt number (specified by int index) data
@@ -52,7 +52,7 @@ void idt_setup() {
 	idt_ptr.limit=sizeof(idt_entry_t)*256-1;
 	idt_ptr.base=(unsigned int)&idt_entries;
 	//     int num,      the function, GDT, flags DPL = 0; 
-	idt_set_gate(0,(unsigned int)isr0,0x08,0x8e);
+	idt_set_gate(0,(unsigned int)isr0,0x08,0x8f);
 	#pragma region idt_set_gates
 	idt_set_gate(1,(unsigned int)isr1,0x08,0x8e);
 	idt_set_gate(2,(unsigned int)isr2,0x08,0x8e);
@@ -183,7 +183,7 @@ void idt_setup() {
 	idt_set_gate(127,(unsigned int)isr127,0x08,0x8e);
 	idt_set_gate(128,(unsigned int)isr128,0x08,0x8e);
 	idt_set_gate(129,(unsigned int)isr129,0x08,0x8e);
-	idt_set_gate(130,(unsigned int)isr130,0x0B,0x8e); // Context switch
+	idt_set_gate(130,(unsigned int)isr130,0x08,0xef); // Context switch
 	idt_set_gate(131,(unsigned int)isr131,0x08,0x8e);
 	idt_set_gate(132,(unsigned int)isr132,0x08,0x8e);
 	idt_set_gate(133,(unsigned int)isr133,0x08,0x8e);
@@ -313,7 +313,7 @@ void idt_setup() {
 	idt_write((unsigned int)&idt_ptr);
 }
 
-
+// Setup the TSS structure and the TSS selector
 void write_tss(unsigned int num, unsigned short ss0, unsigned int esp0)
 {
    unsigned int base = (unsigned int) &sys_tss;
@@ -338,6 +338,7 @@ void write_tss(unsigned int num, unsigned short ss0, unsigned int esp0)
    sys_tss.ss = sys_tss.ds = sys_tss.es = sys_tss.fs = sys_tss.gs = 0x13;
 } 
 
+// Sets the stack to use on traps
 void set_kernel_stack(unsigned int stack)
 {
    sys_tss.esp0 = stack;

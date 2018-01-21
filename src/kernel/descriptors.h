@@ -302,6 +302,7 @@ struct idt_ptr_struct{
 
 typedef struct idt_ptr_struct idt_ptr_t;
 
+// A struct that represents the TSS
 struct strtss {
    unsigned int prev_tss;   // The previous TSS - if we used hardware task switching this would form a linked list.
    unsigned int esp0;       // The stack pointer to load when we change to kernel mode.

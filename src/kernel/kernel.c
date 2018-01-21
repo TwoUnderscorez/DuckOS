@@ -28,7 +28,6 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	puts("Initialzing heap...\n");
 	init_heap();
 	puts("Heap initialized.\n");
-	puts("\n");
 	puts("Initialzing tasking... ");
 	__asm__("int $0x81");
 	puts("OK\nRunning other task...\n");
