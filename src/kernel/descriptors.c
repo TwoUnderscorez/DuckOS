@@ -182,9 +182,9 @@ void idt_setup() {
 	idt_set_gate(126,(unsigned int)isr126,0x08,0x8e);
 	idt_set_gate(127,(unsigned int)isr127,0x08,0x8e);
 	idt_set_gate(128,(unsigned int)isr128,0x08,0x8e);
-	idt_set_gate(129,(unsigned int)isr129,0x08,0x8e);
+	idt_set_gate(129,(unsigned int)isr129,0x08,0x8e); 
 	idt_set_gate(130,(unsigned int)isr130,0x08,0xef); // Context switch
-	idt_set_gate(131,(unsigned int)isr131,0x08,0x8e);
+	idt_set_gate(131,(unsigned int)isr131,0x08,0xef); // Puts
 	idt_set_gate(132,(unsigned int)isr132,0x08,0x8e);
 	idt_set_gate(133,(unsigned int)isr133,0x08,0x8e);
 	idt_set_gate(134,(unsigned int)isr134,0x08,0x8e);
@@ -341,5 +341,5 @@ void write_tss(unsigned int num, unsigned short ss0, unsigned int esp0)
 // Sets the stack to use on traps
 void set_kernel_stack(unsigned int stack)
 {
-   sys_tss.esp0 = stack;
+   	sys_tss.esp0 = stack;
 } 

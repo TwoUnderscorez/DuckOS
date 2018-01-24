@@ -60,8 +60,10 @@ typedef struct page_table_entry page_table_entry_t;
 extern void loadPageDirectoryAsm(unsigned int * ptr);
 extern void enablePagingAsm(void);
 extern void enablePaePagingAsm(void);
+extern void disablePagingAsm(void);
 void init_memory(multiboot_info_t * mbd);
 void dump_mmap(void);
 unsigned int kalloc_frame();
 void kfree_frame(unsigned int page_frame_addr);
+unsigned int create_pdpt();
 #endif

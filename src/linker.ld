@@ -31,4 +31,7 @@ SECTIONS
     }
 
     end = .; _end = .; __end = .;
+
+    . = 0x300000;
+    .text : { *(.usrtext) }
 }

@@ -2,6 +2,7 @@ global in_byte
 global out_byte
 global in_word
 global out_word
+global io_wait
 global asmcli
 global asmsti
 
@@ -41,6 +42,16 @@ out_word:
     mov     edx, [ebp + 8]  ; unsigned short port
     mov     eax, [ebp + 12] ; unsigned short data
     out     dx, ax
+    pop     ebp
+    ret
+
+io_wait:
+    push    ebp
+    mov     ebp, esp
+    push    eax
+    xor     al, al
+    out     0x00, al
+    pop     eax
     pop     ebp
     ret
 

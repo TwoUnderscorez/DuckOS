@@ -1,6 +1,10 @@
 #include "memory.h"
 #include "multiboot.h"
+#include "heap.h"
 #include "../drivers/screen.h"
+#include "../asm/asmio.h"
+#include "../libs/string.h"
+extern void usermain();
 
 page_directory_pointer_table_entry_t page_dir_ptr_tab[4] __attribute__((aligned(0x20)));
 page_directory_table_entry_t page_dir[512] __attribute__((aligned(0x1000)));
@@ -12,28 +16,37 @@ unsigned int pre_frame_map[20];
 
 void init_memory(multiboot_info_t * mymbd) {
     mbd = mymbd;
-    startframe = 0x300000;
+    startframe = 0x400000;
     // Map a 2 mb single page using an entry in the page directory table (0-0x200000)
     page_dir_ptr_tab[0].present = 1;
     page_dir_ptr_tab[0].page_directory_table_address = (unsigned int)&page_dir>>12;
     page_dir[0].present = 1;
     page_dir[0].ro_rw = 1;
     page_dir[0].size = 1;
-    page_dir[0].page_table_address =0;
+    page_dir[0].page_table_address = 0;
     page_dir[0].kernel_user = 1;
-    // Map 512 4kb pages (0x200000-0x400000)
-    page_dir[1].present = 1;
-    page_dir[1].ro_rw = 1;
-    page_dir[1].page_table_address = (unsigned int)&page_tab>>12;
-    unsigned int i, address = 0;
-    for(i = 0; i < 512; i++)
-    {
-        page_tab[i].present = 1;
-        page_tab[i].ro_rw = 1;
-        page_tab[i].physical_page_address = address>>12;
-        page_tab[i].kernel_user = 1;
-        address = address + 0x1000;
-    }
+    // page_dir[1].present = 1;
+    // page_dir[1].ro_rw = 1;
+    // page_dir[1].size = 1;
+    // page_dir[1].page_table_address = 0x200000>>12;
+    // page_dir[1].kernel_user = 1;
+    ////////////////////////////////////////////////////////////////////////////
+    // An unsuccessful attempt at making a Higher Half Kernel
+    // unsigned int i, address = 0xB0000000;
+    // puts("\n");
+    // for(i = 388; i < 475; i++){
+    //     screen_print_int(address>>12, 16);
+    //     puts(" ");
+    //     page_dir[i].present = 1;
+    //     page_dir[i].ro_rw = 1;
+    //     page_dir[i].size = 1;
+    //     page_dir[i].page_table_address = (unsigned int)address>>12;
+    //     screen_print_int(page_dir[i].page_table_address, 16);
+    //     puts("\n");
+    //     getc();
+    //     page_dir[i].kernel_user = 0;
+    //     address = (unsigned int)((unsigned int)address + (unsigned int)0x200000);
+    // }
     puts("Enabaling PAE paging...\n");
     enablePaePagingAsm(); 
     loadPageDirectoryAsm((unsigned int *)&page_dir_ptr_tab);
@@ -113,4 +126,49 @@ void kfree_frame(unsigned int page_frame_addr)
     page_frame_addr = (unsigned int)(page_frame_addr - startframe); 
     // Divide by 4kb to get the index of the page frame in frame_map
     frame_map[((unsigned int)page_frame_addr)/0x1000] = 0;
+}
+
+// Create a page directory pointer table for a userland process
+unsigned int create_pdpt() {
+    unsigned int task_pdpt, task_dt, task_tab;
+    // Get a page frame for each pdpt, dt, pt because their address 
+    // must be 0x1000 (4096) byte aligned.
+    task_pdpt = kalloc_frame();
+    task_dt = kalloc_frame();
+    task_tab = kalloc_frame();
+    // We are entering a critical section
+    asmcli();
+    // Temporarily disable paging so we can write to the physical
+    // addresses of paging tables without problems
+    disablePagingAsm();
+    // Create the pointers
+    page_directory_pointer_table_entry_t * temp_pdpt;
+    temp_pdpt = (page_directory_pointer_table_entry_t *)task_pdpt;
+    page_directory_table_entry_t * temp_dt;
+    temp_dt = (page_directory_table_entry_t *)task_dt;
+    page_table_entry_t * temp_tab;
+    temp_tab = (page_table_entry_t *)task_tab;
+    temp_pdpt[0].page_directory_table_address = (unsigned int)temp_dt>>12;
+    temp_pdpt[0].present = 1;
+    // Map the kernel space
+    temp_dt[0].present = 1;
+    temp_dt[0].ro_rw = 1;
+    temp_dt[0].size = 1;
+    temp_dt[0].page_table_address = 0;
+    temp_dt[0].kernel_user = 0; 
+    // Map user space (0x300000-0x301000)
+    temp_dt[1].present = 1;
+    temp_dt[1].page_table_address = (unsigned int)temp_tab>>12;
+    temp_dt[1].kernel_user = 1;
+    temp_tab[256].present = 1;
+    temp_tab[256].ro_rw = 1;
+    temp_tab[256].physical_page_address = 0x300000>>12;
+    temp_tab[256].kernel_user = 1;
+    // Re-enable interrupts and paging
+    /* Temporary loading of the user task to the appropriate location
+     * in memory. will be removed. */
+    memcpy(0x300000, &usermain, 0x1000); // temp
+    enablePagingAsm();
+    asmsti();
+    return task_pdpt;
 }

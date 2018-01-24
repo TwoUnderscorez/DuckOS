@@ -5,8 +5,8 @@ LDFLAGS:=-T linker.ld -o kernel.sys -m elf_i386
 ASM:=nasm
 ASMFLAGS:=-f elf
 
-all: kernel.o boot.o
-	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o syscall.o
+all: kernel.o boot.o testuserapp.o
+	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o syscall.o testuserapp.o
 
 kernel.o: screen.o keyboard.o asmio.o descriptors.o memory.o heap.o
 	$(CC) $(CFLAGS) kernel/kernel.c
@@ -58,6 +58,9 @@ task.o: syscall.o
 
 syscall.o:
 	$(CC) $(CFLAGS) kernel/syscall.c
+
+testuserapp.o:
+	$(ASM) $(ASMFLAGS) -o testuserapp.o asm/testuserapp.asm
 
 clean:
 	$(shell rm -rf *.o kernel.sys)

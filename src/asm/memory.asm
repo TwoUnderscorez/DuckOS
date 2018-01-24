@@ -1,6 +1,7 @@
 global loadPageDirectoryAsm
 global enablePagingAsm
 global enablePaePagingAsm
+global disablePagingAsm
 loadPageDirectoryAsm:
     push    ebp
     mov     ebp, esp
@@ -14,6 +15,15 @@ enablePagingAsm:
     mov     ebp, esp
     mov     eax, cr0
     or      eax, 0x80000000
+    mov     cr0, eax
+    pop     ebp
+    ret
+
+disablePagingAsm:
+    push    ebp
+    mov     ebp, esp
+    mov     eax, cr0
+    and     eax, 0xF7FFFFFFF
     mov     cr0, eax
     pop     ebp
     ret

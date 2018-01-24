@@ -24,12 +24,13 @@ void init_tasking(registers_t * regs) {
     mainTask.next = &otherTask;
     set_kernel_stack((unsigned int)regs->kesp);
     // Create the other task
-    create_task(&otherTask, other_main, mainTask.regs.eflags, (unsigned int*)mainTask.regs.cr3);
+    unsigned int t_pdpt = (unsigned int)create_pdpt();
+    create_task(&otherTask, 0x300000, mainTask.regs.eflags, t_pdpt);
     otherTask.next = &mainTask;
     runningTask = &mainTask;
 }
  
-void create_task(task_t *task, void (*main)(), unsigned int flags, unsigned int *pagedir) {
+void create_task(task_t *task, void (*main)(), unsigned int flags, unsigned int pagedir) {
     task->regs.eax = 0;
     task->regs.ebx = 0;
     task->regs.ecx = 0;
@@ -42,7 +43,7 @@ void create_task(task_t *task, void (*main)(), unsigned int flags, unsigned int 
     task->regs.eflags = flags;
     task->regs.eip = (unsigned int) main;
     task->regs.cr3 = (unsigned int) pagedir;
-    task->regs.useresp = (unsigned int) 0x130000; // Proccess' tack
+    task->regs.useresp = (unsigned int) 0x300100; // Proccess' stack
     task->regs.kesp = (unsigned int)mainTask.regs.kesp; // ISR's stack
     task->next = 0;
 }
