@@ -53,3 +53,4 @@ dkms.conf
 # vscode config
 .vscode/
 *.lnk
+disk.img
