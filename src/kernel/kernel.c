@@ -6,6 +6,7 @@
 #include "../drivers/screen.h"
 #include "../drivers/keyboard.h"
 #include "../asm/asmio.h"
+#include "../boot/bootscreen.h"
 
 int kmain(multiboot_info_t * mbd, unsigned int magic){
 	screen_clear();

@@ -3,7 +3,7 @@
 
 #include "isr.h"
 void other_main(void);
-void init_tasking();
+void init_tasking(registers_t * regs);
  
 struct task {
     registers_t regs;

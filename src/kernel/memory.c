@@ -24,12 +24,12 @@ void init_memory(multiboot_info_t * mymbd) {
     page_dir[0].ro_rw = 1;
     page_dir[0].size = 1;
     page_dir[0].page_table_address = 0;
-    page_dir[0].kernel_user = 1;
-    // page_dir[1].present = 1;
-    // page_dir[1].ro_rw = 1;
-    // page_dir[1].size = 1;
-    // page_dir[1].page_table_address = 0x200000>>12;
-    // page_dir[1].kernel_user = 1;
+    page_dir[0].kernel_user = 0;
+    page_dir[1].present = 1;
+    page_dir[1].ro_rw = 1;
+    page_dir[1].size = 1;
+    page_dir[1].page_table_address = 0x200000>>12;
+    page_dir[1].kernel_user = 0;
     ////////////////////////////////////////////////////////////////////////////
     // An unsuccessful attempt at making a Higher Half Kernel
     // unsigned int i, address = 0xB0000000;
@@ -166,8 +166,9 @@ unsigned int create_pdpt() {
     temp_tab[256].kernel_user = 1;
     // Re-enable interrupts and paging
     /* Temporary loading of the user task to the appropriate location
-     * in memory. will be removed. */
-    memcpy(0x300000, &usermain, 0x1000); // temp
+     * in memory. will be removed. 
+     */
+    memcpy((void *)0x300000, &usermain, 0x1000); // temp
     enablePagingAsm();
     asmsti();
     return task_pdpt;

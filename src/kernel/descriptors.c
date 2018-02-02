@@ -181,8 +181,8 @@ void idt_setup() {
 	idt_set_gate(125,(unsigned int)isr125,0x08,0x8e);
 	idt_set_gate(126,(unsigned int)isr126,0x08,0x8e);
 	idt_set_gate(127,(unsigned int)isr127,0x08,0x8e);
-	idt_set_gate(128,(unsigned int)isr128,0x08,0x8e);
-	idt_set_gate(129,(unsigned int)isr129,0x08,0x8e); 
+	idt_set_gate(128,(unsigned int)isr128,0x08,0x8f); // Reserved
+	idt_set_gate(129,(unsigned int)isr129,0x08,0x8f); // Init tasking
 	idt_set_gate(130,(unsigned int)isr130,0x08,0xef); // Context switch
 	idt_set_gate(131,(unsigned int)isr131,0x08,0xef); // Puts
 	idt_set_gate(132,(unsigned int)isr132,0x08,0x8e);

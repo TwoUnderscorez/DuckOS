@@ -25,7 +25,7 @@ void init_tasking(registers_t * regs) {
     set_kernel_stack((unsigned int)regs->kesp);
     // Create the other task
     unsigned int t_pdpt = (unsigned int)create_pdpt();
-    create_task(&otherTask, 0x300000, mainTask.regs.eflags, t_pdpt);
+    create_task(&otherTask, (void *)0x300000, mainTask.regs.eflags, t_pdpt);
     otherTask.next = &mainTask;
     runningTask = &mainTask;
 }
