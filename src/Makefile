@@ -67,4 +67,3 @@ testuserapp.o:
 
 clean:
 	$(shell rm -rf *.o kernel.sys)
-	$(shell rm ../os.iso)

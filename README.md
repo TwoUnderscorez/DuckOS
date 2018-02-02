@@ -8,6 +8,10 @@ one time setup setup:
 
 `# apt install qemu mkisofs make gcc nasm`
 
-compile and run:
+if for some reason the disk.img file is not there:
 
-`$ bash ./make.sh`
+`# ./prepare_image.sh`
+
+compile, copy fs and run:
+
+`# ./make.sh`
