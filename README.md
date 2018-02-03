@@ -15,3 +15,7 @@ if for some reason the disk.img file is not there:
 compile, copy fs and run:
 
 `# ./make.sh`
+
+copy fs and run:
+
+`# ./run.sh`
