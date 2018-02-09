@@ -48,10 +48,8 @@ out_word:
 io_wait:
     push    ebp
     mov     ebp, esp
-    push    eax
     xor     al, al
     out     0x00, al
-    pop     eax
     pop     ebp
     ret
 

@@ -27,11 +27,12 @@ SECTIONS
         bss = .; _bss = .; __bss = .;
         *(.bss)
         . = ALIGN(4096);
-        endkernel = .;
+        
     }
 
     end = .; _end = .; __end = .;
 
     . = 0x300000;
     .text : { *(.usrtext) }
+    endkernel = .;
 }

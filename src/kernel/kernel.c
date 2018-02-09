@@ -7,6 +7,7 @@
 #include "../drivers/keyboard.h"
 #include "../asm/asmio.h"
 #include "../boot/bootscreen.h"
+#include "../drivers/atapio.h"
 
 int kmain(multiboot_info_t * mbd, unsigned int magic){
 	screen_clear();
@@ -34,7 +35,14 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	puts("OK\nRunning other task...\n");
 	__asm__("int $0x82");
 	puts("Returned to main task!\n");
-	puts("Press any key to enter free write mode.\n");
+	unsigned short * sector = malloc(sizeof(unsigned short)*256);
+	ata_read_sectors(2048, 1, sector);
+	int i;
+	for(i=0; i<256; i++){
+		screen_print_int(*(sector + i), 16);
+		puts(" ");
+	}
+	puts("\nPress any key to enter free write mode.\n");
     getc();
     free_write();
 	return 0;
