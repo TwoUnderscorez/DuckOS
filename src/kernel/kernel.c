@@ -9,6 +9,7 @@
 #include "../asm/asmio.h"
 #include "../boot/bootscreen.h"
 #include "../drivers/atapio.h"
+#include "../drivers/ext2.h"
 
 int kmain(multiboot_info_t * mbd, unsigned int magic){
 	screen_clear();
@@ -55,6 +56,8 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 		screen_print_int(*(sector + i), 16);
 		puts(" ");
 	}
+	puts("\n");
+	screen_print_int(sizeof(EXT2_SUPERBLOCK_t), 10);
 	puts("\nPress any key to enter free write mode.\n");
 	getc();
     free_write();

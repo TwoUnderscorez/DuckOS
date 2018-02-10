@@ -1,0 +1,65 @@
+#ifndef EXT2_H
+#define EXT2_H
+
+// File System States 
+#define EXT2_FS_STATE_CLEAN = 1
+#define EXT2_FS_STATE_ERR   = 2
+// Error Handling Methods 
+#define EXT2_ERR_HANDLE_METHOD_IGNORE       = 1
+#define EXT2_ERR_HANDLE_METHOD_READ_ONLY    = 2
+#define EXT2_ERR_HANDLE_METHOD_KERNEL_PANIC = 3
+// Creator Operating System IDs 
+#define EXT2_CREATOR_OS_LINUX   = 0
+#define EXT2_CREATOR_OS_GNU     = 1
+#define EXT2_CREATOR_OS_MASIX   = 2
+#define EXT2_CREATOR_OS_FREEBSD = 3
+#define EXT2_CREATOR_OS_OTHER   = 4
+
+struct EXT2_SUPERBLOCK {
+    unsigned int        INODE_NUM;
+    unsigned int        BLOCK_NUM;
+    unsigned int        SUPERUSER_RESV_BLOCKS;
+    unsigned int        UNALLOCATED_BLOCKS;
+    unsigned int        UNALLOCATED_INODES;
+    unsigned int        SUPERBLOCK_BLOCK_NUM;
+    unsigned int        LOG2_BLOCK_SIZE;
+    unsigned int        LOG2_FRAG_SIZE;
+    unsigned int        NOF_BLOCKS_IN_BLOCK_GROUP;
+    unsigned int        NOF_FRAGS_IN_BLOCK_GROUP;
+    unsigned int        NOF_INODES_IN_BLOCK_GROUP;
+    unsigned int        LAST_MOUNT_TIME;
+    unsigned int        LAST_WRITE_TIME;
+    unsigned short      NOF_MOUNTS_SINCE_CCHECK;    // consistency check
+    unsigned short      NOF_MOUNTS_B4_CCHECK;
+    unsigned short      EXT2_SIGNATURE;             // 0xEF53
+    unsigned short      FS_STATE;
+    unsigned short      EXT2_ERR_HANDLING_METHOD;
+    unsigned short      VERSION_MINOR;
+    unsigned int        LAST_CCECK;
+    unsigned int        CCHECK_INTERVAL;
+    unsigned int        OS_ID;
+    unsigned int        VERSION_MAJOR;
+    unsigned short      USER_ID_THAT_CAN_USE_RSV_BLOCKS;
+    unsigned short      GROUP_ID_THAT_CAN_USE_RSV_BLOCKS;
+    unsigned int        FIRST_NON_RSV_INODE;
+    unsigned short      SIZE_OF_INODE;
+    unsigned short      SUPERBLOCK_BLOCK_GROUP;
+    unsigned int        OPTIONAL_FEATURES;
+    unsigned int        REQUIRED_FEATURES;
+    unsigned char   FS_ID[16];
+    unsigned char   CSTR_VOLUME_NAME[16];
+    unsigned char   CSTR_MOUNT_PATH[64];
+    unsigned int        COMPRESSION_ALGORITHMS;
+    unsigned char       NOF_FILE_BLOCK_PREALLOC;
+    unsigned char       NOF_DIR_BLOCK_PREALLOC;
+    unsigned short      RESV1;
+    unsigned char   JOURNAL_ID[16];
+    unsigned int        JOURNAL_INODE;
+    unsigned int        JOURNAL_DEV;
+    unsigned int        HEAD_OF_ORPHAN_INODE_LIST;
+    unsigned char  RESV2[787];
+}; 
+
+typedef struct EXT2_SUPERBLOCK EXT2_SUPERBLOCK_t;
+
+#endif
