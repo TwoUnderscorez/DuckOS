@@ -20,10 +20,14 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	puts("Setting up the GDT...\n");
 	gdt_setup();
 	puts("GDT set.\n");
-	puts("Setting up the IDT...\n");
+	puts("Initialzing interrupts...\n");
+	puts("Setting up the IDT... ");
 	idt_setup();
-	puts("IDT set.\n");
-	puts("Sending interrupt.\n");
+	puts("[IDT set]\n");
+	puts("Setting up the PIC... ");
+	PIC_remap();
+	puts("[PIC remapped]\n");
+	puts("Sending test interrupt...\n");
 	__asm__("int $0x80");
 	puts("Initialzing memory...\n");
 	init_memory(mbd);
@@ -35,7 +39,6 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	__asm__("int $0x81");
 	puts("OK\nRunning other task...\n");
 	__asm__("int $0x82");
-	PIC_remap();
 	puts("Returned to main task!\n");
 	unsigned char * sector = malloc(sizeof(unsigned char)*512);
 	puts("Reading...\n");
