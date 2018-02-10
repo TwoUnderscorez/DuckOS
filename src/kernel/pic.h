@@ -26,7 +26,7 @@
 #define PIC2_OFFSET     0x78        /* 0x78-0x7F */
 
 void PIC_sendEOI(unsigned char irq);
-void PIC_remap(int offset1, int offset2);
+void PIC_remap();
 void IRQ_set_mask(unsigned char IRQline);
 void IRQ_clear_mask(unsigned char IRQline);
 

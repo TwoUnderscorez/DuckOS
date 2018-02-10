@@ -6,7 +6,7 @@ ASM:=nasm
 ASMFLAGS:=-f elf
 
 all: kernel.o boot.o testuserapp.o
-	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o syscall.o testuserapp.o atapio.o bootscreen.o
+	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o syscall.o testuserapp.o pic.o atapio.o bootscreen.o
 
 kernel.o: screen.o keyboard.o asmio.o descriptors.o memory.o heap.o bootscreen.o atapio.o
 	$(CC) $(CFLAGS) kernel/kernel.c
@@ -62,10 +62,13 @@ task.o: syscall.o
 syscall.o:
 	$(CC) $(CFLAGS) kernel/syscall.c
 
+pic.o:
+	$(CC) $(CFLAGS) kernel/pic.c
+
 testuserapp.o:
 	$(ASM) $(ASMFLAGS) -o testuserapp.o asm/testuserapp.asm
 
-atapio.o:
+atapio.o: pic.o
 	$(CC) $(CFLAGS) drivers/atapio.c
 
 clean:

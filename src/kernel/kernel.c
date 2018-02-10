@@ -3,6 +3,7 @@
 #include "memory.h"
 #include "multiboot.h"
 #include "heap.h"
+#include "pic.h"
 #include "../drivers/screen.h"
 #include "../drivers/keyboard.h"
 #include "../asm/asmio.h"
@@ -34,11 +35,18 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	__asm__("int $0x81");
 	puts("OK\nRunning other task...\n");
 	__asm__("int $0x82");
+	PIC_remap();
 	puts("Returned to main task!\n");
-	unsigned short * sector = malloc(sizeof(unsigned short)*256);
+	unsigned char * sector = malloc(sizeof(unsigned char)*512);
+	puts("Reading...\n");
+	ata_read_sectors(2048, 1, sector);
+	*(sector + 509) = 0xFF;
+	puts("Writing...\n");
+	ata_write_sectors(2048, 1, sector); 
+	puts("Reading...\n");
 	ata_read_sectors(2048, 1, sector);
 	int i;
-	for(i=0; i<256; i++){
+	for(i=0; i<512; i++){
 		screen_print_int(*(sector + i), 16);
 		puts(" ");
 	}
