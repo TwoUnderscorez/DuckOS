@@ -12,6 +12,7 @@
 
 int kmain(multiboot_info_t * mbd, unsigned int magic){
 	screen_clear();
+	unsigned int i;
 	if (magic!=0x2BADB002){
 		puts("Invalid multiboot header.");
 		return -1;
@@ -36,25 +37,26 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	init_heap();
 	puts("Heap initialized.\n");
 	puts("Initialzing tasking... ");
-	__asm__("int $0x81");
+	// __asm__("int $0x81");
 	puts("OK\nRunning other task...\n");
-	__asm__("int $0x82");
+	// __asm__("int $0x82");
 	puts("Returned to main task!\n");
 	unsigned char * sector = malloc(sizeof(unsigned char)*512);
 	puts("Reading...\n");
-	ata_read_sectors(2048, 1, sector);
-	*(sector + 509) = 0xFF;
+	ata_read_sectors(0, 1, sector);
+	*(sector + 509) = 0xFA;
 	puts("Writing...\n");
-	ata_write_sectors(2048, 1, sector); 
+	ata_write_sectors(0, 1, sector); 
+	ata_io_delay();
 	puts("Reading...\n");
-	ata_read_sectors(2048, 1, sector);
-	int i;
+	ata_read_sectors(0, 1, sector);
+	puts("Dumping...\n");
 	for(i=0; i<512; i++){
 		screen_print_int(*(sector + i), 16);
 		puts(" ");
 	}
 	puts("\nPress any key to enter free write mode.\n");
-    getc();
+	getc();
     free_write();
 	return 0;
 }

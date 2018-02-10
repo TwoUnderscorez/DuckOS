@@ -31,11 +31,12 @@ void ata_wait_for_drq(unsigned short DCR) {
 }
 
 void ata_read_sectors(unsigned int lba, char sector_count, char *buffer) {
-	out_byte(ATA_DRIVE_REGISTER_PORT, 0xE0 | 0x40 | ((lba>>24) & 0x0F)); //master drive + lba + high lba bits
+	out_byte(ATA_ERR_INFO_PORT, 0x00);
 	out_byte(ATA_SECTOR_COUNT_REGISTER_PORT, (unsigned char)sector_count); //sector count
 	out_byte(ATA_LBA_LOW_REGISTER_PORT, (unsigned char)lba);
 	out_byte(ATA_LBA_MID_REGISTER_PORT, (unsigned char)(lba>>8));
 	out_byte(ATA_LBA_HIGH_REGISTER_PORT, (unsigned char)(lba>>16));
+	out_byte(ATA_DRIVE_REGISTER_PORT, 0xE0 | 0x40 | ((lba>>24) & 0x0F)); //master drive + lba + high lba bits
 	out_byte(ATA_COMMAND_REGISTER_PORT, ATA_READ); //read command
 	unsigned int offset = 0, i = 0;
 	while(sector_count--) {
@@ -50,11 +51,13 @@ void ata_read_sectors(unsigned int lba, char sector_count, char *buffer) {
 }
 
 void ata_write_sectors(int lba, char sector_count, char *buffer){ //write sectors
-	out_byte(ATA_DRIVE_REGISTER_PORT, 0xE0 | 0x40 | ((lba>>24) & 0x0F)); //master drive + lbal + high lba bits
+	out_byte(ATA_ERR_INFO_PORT, 0x00);
+	out_byte(ATA_ERR_INFO_PORT, 0x00);
 	out_byte(ATA_SECTOR_COUNT_REGISTER_PORT, (unsigned char)sector_count);
 	out_byte(ATA_LBA_LOW_REGISTER_PORT, (unsigned char)lba);
 	out_byte(ATA_LBA_MID_REGISTER_PORT, (unsigned char)(lba>>8));
 	out_byte(ATA_LBA_HIGH_REGISTER_PORT, (unsigned char)(lba>>16));
+	out_byte(ATA_DRIVE_REGISTER_PORT, 0xE0 | 0x40 | ((lba>>24) & 0x0F)); //master drive + lbal + high lba bits
 	out_byte(ATA_COMMAND_REGISTER_PORT, ATA_WRITE);
 	unsigned int offset = 0, i = 0;
 	while(sector_count--) {
@@ -68,4 +71,9 @@ void ata_write_sectors(int lba, char sector_count, char *buffer){ //write sector
 
 void ata_irq_handler() {
 	PIC_sendEOI(ATA_IRQ_LINE);
+}
+
+void ata_io_delay() {
+	unsigned int i;
+	for(i=0;i<10000;i++) io_wait();
 }

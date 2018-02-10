@@ -6,12 +6,12 @@ printf "\n###Mounting raw disk image...###\n"
 sudo losetup /dev/loop6 disk.img
 sudo losetup /dev/loop7 disk.img -o 1048576
 printf "\n###Partitioning and formatting disk image...###\n"
-sudo mkdosfs -F32 -f 2 /dev/loop7
+sudo mke2fs /dev/loop7
 sudo mount /dev/loop7 /mnt
 sudo chmod 777 ./disk.img
 sudo chown ronyu: ./disk.img
 printf "\n###Installing GRUB...###\n"
-sudo grub-install --target=i386-pc --root-directory=/mnt --no-floppy --modules="normal part_msdos fat multiboot" /dev/loop6
+sudo grub-install --target=i386-pc --root-directory=/mnt --no-floppy --modules="normal part_msdos ext2 multiboot" /dev/loop6
 printf "\n###Unmounting...###\n"
 sudo umount /mnt
 sudo losetup -d /dev/loop6

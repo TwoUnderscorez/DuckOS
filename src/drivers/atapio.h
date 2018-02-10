@@ -41,4 +41,5 @@ void ata_wait_for_drq(unsigned short DCR);
 void ata_read_sectors(unsigned int lba, char sector_count, char *buffer);
 void ata_write_sectors(int lba, char sector_count, char *buffer);
 void ata_irq_handler();
+void ata_io_delay();
 #endif

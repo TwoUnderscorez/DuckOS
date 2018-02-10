@@ -46,7 +46,7 @@ void putc(char c) {
     }
     else{
         switch(c){
-        case 0x08:
+        case 0x08: // \b
             if(x>0){
                 x--;
                 vidmem[2*(x+y*80)]=' ';
@@ -55,14 +55,17 @@ void putc(char c) {
                 y--;
             }
             break;
-        case 0x09:
+        case 0x09: // \t
             x+=4;
             if(x>=80){
                 x=0;
                 y++;
             }
             break;
-        case 0x0a:
+        case 0x0d: // \r
+            x=0;
+            break;
+        case 0x0a: // \n
             x=0;
             y++;
             break;
