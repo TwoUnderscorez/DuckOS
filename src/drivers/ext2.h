@@ -5,6 +5,7 @@
 #define EXT2_PARTITION_START                2048
 #define EXT2_SUPERBLOCK_OFFSET              1
 #define EXT2_BLOCK_GROUP_DESCRIPTOR_OFFSET  2
+#define EXT2_ROOT_DIR_INODE_NUM             2
 // File System States 
 #define EXT2_FS_STATE_CLEAN 1
 #define EXT2_FS_STATE_ERR   2
@@ -115,5 +116,6 @@ struct EXT2_DIRECTORY_ENTRY {
 typedef struct EXT2_DIRECTORY_ENTRY EXT2_DIRECTORY_ENTRY_t;
 
 void init_ext2fs();
+void print_filesystem(int inode_num, int tab_count);
 
 #endif

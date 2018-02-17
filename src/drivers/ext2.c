@@ -3,6 +3,7 @@
 #include "screen.h"
 #include "../kernel/heap.h"
 #include "../libs/math.h"
+#include "../libs/string.h"
 
 EXT2_SUPERBLOCK_t * ext2_superblock = 0;
 
@@ -90,6 +91,7 @@ static void print_fs_info() {
 
 static EXT2_BLOCK_GROUP_DESCRIPTOR_t * load_block_group_descriptor(int block_group_num) {
     EXT2_BLOCK_GROUP_DESCRIPTOR_t * ext2_gp_desc = malloc(512);
+    if(!ext2_gp_desc) __asm__("int $0x08");
     int addr = determine_block_group_addr(block_group_num);
     ata_read_sectors(ext2_block_to_lba(addr), 1, ext2_gp_desc);
     return ext2_gp_desc;
@@ -108,30 +110,87 @@ static void print_block_group_descriptor(int block_group_num) {
     free(blkgp);
 }
 
-static void print_inode_info(int inode_num) {
+static EXT2_INODE_t * load_inode(int inode_num) {
     int block_group = determine_inode_block_group(inode_num);
     int index = determine_index_of_inode_in_inode_table(inode_num);
     EXT2_INODE_t * inode_table = malloc(512*(index/512 + 1));
+    if(!inode_table) __asm__("int $0x08");
     EXT2_BLOCK_GROUP_DESCRIPTOR_t * blkgp = load_block_group_descriptor(block_group);
     int addr = determine_block_group_addr(block_group) + blkgp->inode_table_addr - 2;
-    screen_print_int(addr, 10);
     ata_read_sectors(ext2_block_to_lba(addr), index/512 + 1, inode_table);
-    puts("{size : ");
-    screen_print_int(inode_table[index].size_low, 10);
-    puts("; hard links : ");
-    screen_print_int(inode_table[index].hard_links, 10);
-    puts("}\n");
+    EXT2_INODE_t * ret_inode = malloc(sizeof(EXT2_INODE_t));
+    if(!ret_inode) __asm__("int $0x08");
+    memcpy(ret_inode, &inode_table[index], sizeof(EXT2_INODE_t));
     free(inode_table);
     free(blkgp);
+    return ret_inode;
+}
+
+static EXT2_DIRECTORY_ENTRY_t * load_directory_structure(int inode_num) {
+    EXT2_INODE_t * inode = load_inode(inode_num);
+    EXT2_DIRECTORY_ENTRY_t * dirinfo = malloc(1024);
+    if(!dirinfo) __asm__("int $0x08");
+    int i;
+    for(i = 0; i < inode->size_low/1024<<ext2_superblock->LOG2_BLOCK_SIZE; i++) {
+        ata_read_sectors(ext2_block_to_lba(inode->direct_block_pointers[i]), inode->size_low/1024<<ext2_superblock->LOG2_BLOCK_SIZE, (unsigned int)dirinfo + (1024<<ext2_superblock->LOG2_BLOCK_SIZE)*i);
+    }
+    return dirinfo;
+}
+
+static void print_dir_info(int inode_num) {
+    EXT2_DIRECTORY_ENTRY_t * dirinfo = load_directory_structure(inode_num);
+    while(dirinfo->size > 8) {
+        puts("inode num: ");
+        screen_print_int(dirinfo->inode, 10);
+        puts("; name: ");
+        puts((char *)&dirinfo->name_ptr);
+        puts("\n");
+        dirinfo = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dirinfo + (unsigned int)dirinfo->size); 
+    }
+    puts("\n");
+}
+
+static void print_inode_info(int inode_num) {
+    EXT2_INODE_t * inode = load_inode(inode_num);
+    puts("{size : ");
+    screen_print_int(inode->size_low, 10);
+    puts("; hard links : ");
+    screen_print_int(inode->hard_links, 10);
+    puts("; inode num : ");
+    screen_print_int(inode_num, 10);
+    puts("; type : ");
+    screen_print_int(inode->type_prem, 16);
+    puts("}\n");
+    free(inode);
+}
+
+void print_filesystem(int inode_num, int tab_count) {
+    EXT2_DIRECTORY_ENTRY_t * dirinfo;
+    EXT2_INODE_t * inode, dir_inode;
+    puts("/\n");
+    unsigned char entry_count = 0;
+    dirinfo = load_directory_structure(inode_num);
+    do {
+        inode = load_inode(dirinfo->inode);
+        for(int i = 0; i<tab_count; i++) puts("\t");
+        screen_print_int(dirinfo->inode, 10);
+        puts(" ");
+        puts((char *)&dirinfo->name_ptr);
+        if (( (inode->type_prem & 0xF000) == 0x4000) && entry_count > 1)
+        {
+            print_filesystem(dirinfo->inode, tab_count+1);
+        } 
+        else{
+            puts("\n");
+        }
+        dirinfo = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dirinfo + (unsigned int)dirinfo->size); 
+        entry_count++;
+    } while(dirinfo->size > 8);
 }
 
 void init_ext2fs() {
     load_superblock(EXT2_SUPERBLOCK_OFFSET);
     verify_superblock();
     puts("Found ext2 filesystem!\n");
-    print_fs_info();
-    int inode = 8066;
-    print_block_group_descriptor(determine_inode_block_group(inode));
-    puts("/: ");
-    print_inode_info(inode);
+    print_fs_info();    
 }

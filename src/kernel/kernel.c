@@ -44,8 +44,10 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	puts("Returned to main task!\n");
 	puts("Initialzing EXT2 filesystem...\n");
 	init_ext2fs();
-	puts("Filesystem is ready!");
-	puts("\nPress any key to enter free write mode.\n");
+	puts("Filesystem is ready!\n");
+	puts("Printing filesystem recursively...\n");
+	print_filesystem(2, 0);
+	puts("Press any key to enter free write mode.\n");
 	getc();
     free_write();
 	return 0;
