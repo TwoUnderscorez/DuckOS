@@ -1,12 +1,12 @@
 CC:=gcc
-CFLAGS:=-c -Wall -Wunused-function -Wno-unknown-pragmas -fno-builtin -Wno-char-subscripts -fno-stack-protector -m32
+CFLAGS:=-c -Wall -Wno-unused-function -Wno-unknown-pragmas -fno-builtin -Wno-char-subscripts -fno-stack-protector -m32
 LD:=ld
 LDFLAGS:=-T linker.ld -o kernel.sys -m elf_i386
 ASM:=nasm
 ASMFLAGS:=-f elf
 
 all: kernel.o boot.o testuserapp.o
-	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o syscall.o testuserapp.o pic.o atapio.o bootscreen.o ext2.o math.o
+	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o syscall.o testuserapp.o pic.o atapio.o ext2.o math.o
 
 kernel.o: screen.o keyboard.o asmio.o descriptors.o memory.o heap.o bootscreen.o atapio.o ext2.o
 	$(CC) $(CFLAGS) kernel/kernel.c

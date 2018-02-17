@@ -54,7 +54,7 @@ static int lba_to_ext2_block(int lba){
 
 static void load_superblock(int sb_addr) {
     ext2_superblock = malloc(sizeof(EXT2_SUPERBLOCK_t));
-    ata_read_sectors(ext2_block_to_lba(sb_addr), 2, ext2_superblock);
+    ata_read_sectors(ext2_block_to_lba(sb_addr), 2, (char *)ext2_superblock);
 }
 
 static void verify_superblock() {
@@ -93,7 +93,7 @@ static EXT2_BLOCK_GROUP_DESCRIPTOR_t * load_block_group_descriptor(int block_gro
     EXT2_BLOCK_GROUP_DESCRIPTOR_t * ext2_gp_desc = malloc(512);
     if(!ext2_gp_desc) __asm__("int $0x08");
     int addr = determine_block_group_addr(block_group_num);
-    ata_read_sectors(ext2_block_to_lba(addr), 1, ext2_gp_desc);
+    ata_read_sectors(ext2_block_to_lba(addr), 1, (char *)ext2_gp_desc);
     return ext2_gp_desc;
 }
 
@@ -111,29 +111,40 @@ static void print_block_group_descriptor(int block_group_num) {
 }
 
 static EXT2_INODE_t * load_inode(int inode_num) {
+    // get the inode's block_group and index in the inode table
     int block_group = determine_inode_block_group(inode_num);
     int index = determine_index_of_inode_in_inode_table(inode_num);
+    // alloc enough memory for the inode table
     EXT2_INODE_t * inode_table = malloc(512*(index/512 + 1));
     if(!inode_table) __asm__("int $0x08");
     EXT2_BLOCK_GROUP_DESCRIPTOR_t * blkgp = load_block_group_descriptor(block_group);
+    // get the inode table addr from the block group descriptor
     int addr = determine_block_group_addr(block_group) + blkgp->inode_table_addr - 2;
-    ata_read_sectors(ext2_block_to_lba(addr), index/512 + 1, inode_table);
+    // read just enough of the inode table
+    ata_read_sectors(ext2_block_to_lba(addr), index/512 + 1, (char *)inode_table);
+    // alloc mem for a single inode
     EXT2_INODE_t * ret_inode = malloc(sizeof(EXT2_INODE_t));
     if(!ret_inode) __asm__("int $0x08");
-    memcpy(ret_inode, &inode_table[index], sizeof(EXT2_INODE_t));
-    free(inode_table);
-    free(blkgp);
+    // copy over the requested inode
+    memcpy((void *)ret_inode, (void *)&inode_table[index], sizeof(EXT2_INODE_t));
+    // free the table and the descriptor and return the inode
+    free((void *)inode_table);
+    free((void *)blkgp);
     return ret_inode;
 }
 
 static EXT2_DIRECTORY_ENTRY_t * load_directory_structure(int inode_num) {
+    // get the dir's inode
     EXT2_INODE_t * inode = load_inode(inode_num);
-    EXT2_DIRECTORY_ENTRY_t * dirinfo = malloc(1024);
+    EXT2_DIRECTORY_ENTRY_t * dirinfo = malloc(inode->size_low);
     if(!dirinfo) __asm__("int $0x08");
     int i;
+    // read the contents
     for(i = 0; i < inode->size_low/1024<<ext2_superblock->LOG2_BLOCK_SIZE; i++) {
-        ata_read_sectors(ext2_block_to_lba(inode->direct_block_pointers[i]), inode->size_low/1024<<ext2_superblock->LOG2_BLOCK_SIZE, (unsigned int)dirinfo + (1024<<ext2_superblock->LOG2_BLOCK_SIZE)*i);
+        ata_read_sectors(ext2_block_to_lba(inode->direct_block_pointers[i]), inode->size_low/1024<<ext2_superblock->LOG2_BLOCK_SIZE, (char *)( (unsigned int)dirinfo + (1024<<ext2_superblock->LOG2_BLOCK_SIZE)*i) );
+        if (i>10) break;
     }
+    free((void *)inode);
     return dirinfo;
 }
 
@@ -147,6 +158,7 @@ static void print_dir_info(int inode_num) {
         puts("\n");
         dirinfo = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dirinfo + (unsigned int)dirinfo->size); 
     }
+    free((void *)dirinfo);
     puts("\n");
 }
 
@@ -161,12 +173,12 @@ static void print_inode_info(int inode_num) {
     puts("; type : ");
     screen_print_int(inode->type_prem, 16);
     puts("}\n");
-    free(inode);
+    free((void *)inode);
 }
 
 void print_filesystem(int inode_num, int tab_count) {
     EXT2_DIRECTORY_ENTRY_t * dirinfo;
-    EXT2_INODE_t * inode, dir_inode;
+    EXT2_INODE_t * inode;
     puts("/\n");
     unsigned char entry_count = 0;
     dirinfo = load_directory_structure(inode_num);
@@ -176,6 +188,7 @@ void print_filesystem(int inode_num, int tab_count) {
         screen_print_int(dirinfo->inode, 10);
         puts(" ");
         puts((char *)&dirinfo->name_ptr);
+        // if we found a dir print it's contents
         if (( (inode->type_prem & 0xF000) == 0x4000) && entry_count > 1)
         {
             print_filesystem(dirinfo->inode, tab_count+1);
@@ -186,6 +199,8 @@ void print_filesystem(int inode_num, int tab_count) {
         dirinfo = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dirinfo + (unsigned int)dirinfo->size); 
         entry_count++;
     } while(dirinfo->size > 8);
+    free((void *)dirinfo);
+    free((void *)inode);
 }
 
 void init_ext2fs() {

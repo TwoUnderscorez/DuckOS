@@ -13,7 +13,6 @@
 
 int kmain(multiboot_info_t * mbd, unsigned int magic){
 	screen_clear();
-	unsigned int i;
 	if (magic!=0x2BADB002){
 		puts("Invalid multiboot header.");
 		return -1;
@@ -46,7 +45,7 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	init_ext2fs();
 	puts("Filesystem is ready!\n");
 	puts("Printing filesystem recursively...\n");
-	print_filesystem(2, 0);
+	print_filesystem(EXT2_ROOT_DIR_INODE_NUM, 0);
 	puts("Press any key to enter free write mode.\n");
 	getc();
     free_write();
