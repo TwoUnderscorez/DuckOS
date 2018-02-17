@@ -1,21 +1,37 @@
 # DuckOS
-DuckOS
+A simple operating system for ducks.
 
 # Compilation instructions
-one time setup setup:
+### Install stuff
 
 `# apt update && apt upgrade`
 
 `# apt install qemu mkisofs make gcc nasm`
 
-if for some reason the disk.img file is not there:
+### Prepare the image:
 
 `# ./prepare_image.sh`
 
-compile, copy fs and run:
+make a new primary partition (n then p then enter for defaults)
+also make the parition bootable by entering a then write the chenges
+to the image with w.
+
+### Actually running DuckOS 
+#### compile, copy fs and run:
 
 `# ./make.sh`
 
-copy fs and run:
+#### copy fs and run:
 
 `# ./run.sh`
+
+# Screenshots
+
+### Kernel Heap
+![Kernel Heap](https://user-images.githubusercontent.com/25303006/35394829-68be0952-01f1-11e8-9d00-018af7fac4c7.png)
+### Page frame allocator
+![Page frame allocator](https://user-images.githubusercontent.com/25303006/35394879-8da57ab6-01f1-11e8-8800-67ffb3e567d4.png)
+### Multitasking in userland
+![Multitasking in userland](https://user-images.githubusercontent.com/25303006/35394921-a84fc93e-01f1-11e8-88c8-c1b9cde4a08d.png)
+### Printing filesystem recursively
+![Printing filesystem recursively](https://planq.io/DuckOS/screenshots/print-R-fs.png)
