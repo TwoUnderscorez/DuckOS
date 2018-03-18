@@ -117,5 +117,7 @@ typedef struct EXT2_DIRECTORY_ENTRY EXT2_DIRECTORY_ENTRY_t;
 
 void init_ext2fs();
 void print_filesystem(int inode_num, int tab_count);
+EXT2_INODE_t * load_inode(int inode_num);
+void load_file(int inode_num, int seek, int skip, void * buff);
 
 #endif

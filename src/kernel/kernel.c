@@ -4,12 +4,14 @@
 #include "multiboot.h"
 #include "heap.h"
 #include "pic.h"
+#include "elf.h"
 #include "../drivers/screen.h"
 #include "../drivers/keyboard.h"
 #include "../asm/asmio.h"
 #include "../boot/bootscreen.h"
 #include "../drivers/atapio.h"
 #include "../drivers/ext2.h"
+#include "../libs/string.h"
 
 int kmain(multiboot_info_t * mbd, unsigned int magic){
 	screen_clear();
@@ -46,6 +48,20 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	puts("Filesystem is ready!\n");
 	puts("Printing filesystem recursively...\n");
 	print_filesystem(EXT2_ROOT_DIR_INODE_NUM, 0);
+	puts("OK\n");
+	puts("Loading ELF... ");
+	int * mbuff = malloc(1024);
+	load_file(4036, 0, 0, (void *)mbuff);
+	puts("OK\n");
+	getc();
+	hexDump("elffile", mbuff, 256);
+	getc();
+	puts("Parsing ELF...\n");
+	int i;
+	if(elf_check_supported(mbuff)) {
+		elf_load_file(mbuff);
+	}
+	
 	puts("Press any key to enter free write mode.\n");
 	getc();
     free_write();

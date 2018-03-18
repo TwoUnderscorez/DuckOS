@@ -4,6 +4,7 @@
 #include "../drivers/screen.h"
 #include "../asm/asmio.h"
 #include "../libs/string.h"
+#include "../libs/bitmap.h"
 extern void usermain();
 
 page_directory_pointer_table_entry_t page_dir_ptr_tab[4] __attribute__((aligned(0x20)));
@@ -73,7 +74,7 @@ static unsigned int kalloc_frame_int()
 {
     unsigned int i = 0;
     // Search of an unused frame
-    while(frame_map[i] != 0)
+    while(bitmapGet(frame_map, i))
     {
         i++;
         if(i == 512)
@@ -83,7 +84,7 @@ static unsigned int kalloc_frame_int()
         }
     }
     // Set frame to used status
-    frame_map[i] = 1;
+    bitmapSet(frame_map, i);
     // Return the physical address
     return(startframe + (i*0x1000));
 }
@@ -96,6 +97,7 @@ unsigned int kalloc_frame()
     static unsigned char pframe = 0;
     // Physical address of the page frame we are about to return
     unsigned int ret;
+    int i;
 
     if(pframe == 20) // If we are out of pre-allocatd page frames
     {
@@ -105,7 +107,7 @@ unsigned int kalloc_frame()
     if(allocate == 1)
     {
         // Allocate 20 page frames and save their physical addresses
-        for(int i = 0; i<20; i++)
+        for(i = 0; i<20; i++)
         {
             pre_frame_map[i] = (unsigned int)kalloc_frame_int();
             if(!pre_frame_map[i]) // Check for nulls (out of page frames)
@@ -125,7 +127,7 @@ void kfree_frame(unsigned int page_frame_addr)
     // get the offset from the first frame
     page_frame_addr = (unsigned int)(page_frame_addr - startframe); 
     // Divide by 4kb to get the index of the page frame in frame_map
-    frame_map[((unsigned int)page_frame_addr)/0x1000] = 0;
+    bitmapReset(&frame_map, ((unsigned int)page_frame_addr)/0x1000);
 }
 
 // Create a page directory pointer table for a userland process

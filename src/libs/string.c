@@ -160,3 +160,62 @@ char *strstr(char *str, char *substr)
     }
     return '\0';
 }
+
+void hexDump (char *desc, void *addr, int len) {
+    int i;
+    unsigned char buff[17];
+    unsigned char *pc = (unsigned char*)addr;
+
+    // Output description if given.
+    if (desc)
+        puts(desc);
+		puts(":");
+
+    if (!len) {
+        puts("  ZERO LENGTH\n");
+        return;
+    }
+    if (len < 0) {
+        puts("  NEGATIVE LENGTH: %i\n",len);
+        return;
+    }
+
+    // Process every byte in the data.
+    for (i = 0; i < len; i++) {
+        // Multiple of 16 means new line (with line offset).
+
+        if ((i % 16) == 0) {
+            // Just don't print ASCII for the zeroth line.
+            if (i != 0)
+				puts (buff);
+				puts("\n");
+
+            // Output the offset.
+            // printf ("  %04x ", i);
+			screen_print_int(i, 16);
+			puts(": ");
+        }
+
+        // Now the hex code for the specific character.
+        screen_print_int(pc[i], 16);
+		puts(" ");
+
+        // And store a printable ASCII character for later.
+        if ((pc[i] < 0x20) || (pc[i] > 0x7e))
+            buff[i % 16] = '.';
+        else
+            buff[i % 16] = pc[i];
+        buff[(i % 16) + 1] = '\0';
+    }
+
+    // Pad out last line if not exactly 16 characters.
+    while ((i % 16) != 0) {
+        puts ("   ");
+        i++;
+    }
+
+    // And print the final ASCII bit.
+    puts ("  ");
+	puts(buff);
+	puts("\n");
+}

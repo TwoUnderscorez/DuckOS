@@ -6,7 +6,7 @@ ASM:=nasm
 ASMFLAGS:=-f elf
 
 all: kernel.o boot.o testuserapp.o
-	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o syscall.o testuserapp.o pic.o atapio.o ext2.o math.o
+	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o syscall.o testuserapp.o pic.o atapio.o ext2.o elf.o bitmap.o math.o
 
 kernel.o: screen.o keyboard.o asmio.o descriptors.o memory.o heap.o bootscreen.o atapio.o ext2.o
 	$(CC) $(CFLAGS) kernel/kernel.c
@@ -17,7 +17,7 @@ boot.o: kernel.o
 bootscreen.o:
 	$(CC) $(CFLAGS) boot/bootscreen.c
 
-memory.o: memoryasm.o
+memory.o: memoryasm.o heap.o bitmap.o
 	$(CC) $(CFLAGS) kernel/memory.c
 
 memoryasm.o:
@@ -56,10 +56,13 @@ libc.o:
 math.o:
 	$(CC) $(CFLAGS) libs/math.c
 
+bitmap.o:
+	$(CC) $(CFLAGS) libs/bitmap.c
+
 heap.o:
 	$(CC) $(CFLAGS) kernel/heap.c
 
-task.o: syscall.o
+task.o: syscall.o elf.o
 	$(CC) $(CFLAGS) kernel/task.c
 
 syscall.o:
@@ -76,6 +79,9 @@ atapio.o: pic.o
 
 ext2.o: math.o
 	$(CC) $(CFLAGS) drivers/ext2.c
+
+elf.o:
+	$(CC) $(CFLAGS) kernel/elf.c
 
 clean:
 	$(shell rm -rf *.o kernel.sys)

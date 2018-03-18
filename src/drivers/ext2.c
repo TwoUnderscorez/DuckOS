@@ -110,7 +110,7 @@ static void print_block_group_descriptor(int block_group_num) {
     free(blkgp);
 }
 
-static EXT2_INODE_t * load_inode(int inode_num) {
+EXT2_INODE_t * load_inode(int inode_num) {
     // get the inode's block_group and index in the inode table
     int block_group = determine_inode_block_group(inode_num);
     int index = determine_index_of_inode_in_inode_table(inode_num);
@@ -136,12 +136,14 @@ static EXT2_INODE_t * load_inode(int inode_num) {
 static EXT2_DIRECTORY_ENTRY_t * load_directory_structure(int inode_num) {
     // get the dir's inode
     EXT2_INODE_t * inode = load_inode(inode_num);
-    EXT2_DIRECTORY_ENTRY_t * dirinfo = malloc(inode->size_low);
+    EXT2_DIRECTORY_ENTRY_t * dirinfo = malloc(2*ATA_SECTOR_SIZE);
     if(!dirinfo) __asm__("int $0x08");
     int i;
     // read the contents
     for(i = 0; i < inode->size_low/1024<<ext2_superblock->LOG2_BLOCK_SIZE; i++) {
-        ata_read_sectors(ext2_block_to_lba(inode->direct_block_pointers[i]), inode->size_low/1024<<ext2_superblock->LOG2_BLOCK_SIZE, (char *)( (unsigned int)dirinfo + (1024<<ext2_superblock->LOG2_BLOCK_SIZE)*i) );
+        ata_read_sectors( ext2_block_to_lba(inode->direct_block_pointers[i]), 
+                          (1024<<ext2_superblock->LOG2_BLOCK_SIZE)/ATA_SECTOR_SIZE, 
+                          (char *)( (unsigned int)dirinfo + (1024<<ext2_superblock->LOG2_BLOCK_SIZE)*i) );
         if (i>10) break;
     }
     free((void *)inode);
@@ -201,6 +203,23 @@ void print_filesystem(int inode_num, int tab_count) {
     } while(dirinfo->size > 8);
     free((void *)dirinfo);
     free((void *)inode);
+}
+
+void load_file(int inode_num, int seek, int skip, void * buff) {
+    EXT2_INODE_t * inode = load_inode(inode_num);
+    if(!inode) return;
+    int i;
+    for(i = 0; i < 12; i++){
+        if(inode->direct_block_pointers[i]){
+            ata_read_sectors( ext2_block_to_lba(inode->direct_block_pointers[i]), 
+                              (1024<<ext2_superblock->LOG2_BLOCK_SIZE)/ATA_SECTOR_SIZE, 
+                              (char *)( (unsigned int)buff + (1024<<ext2_superblock->LOG2_BLOCK_SIZE)*i) );
+        }
+        else {
+            break;
+        }
+    }
+    free(inode);
 }
 
 void init_ext2fs() {

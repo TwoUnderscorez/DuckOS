@@ -1,6 +1,7 @@
 #ifndef ATAPIO_H
 #define ATAPIO_H
 #include "../kernel/pic.h"
+#define ATA_SECTOR_SIZE                  512
 // ATA bus I/O ports
 #define ATA_DATA_REGISTER_PORT           0x1F0
 #define ATA_ERR_INFO_PORT                0x1F0
