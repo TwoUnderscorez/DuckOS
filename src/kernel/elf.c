@@ -1,5 +1,7 @@
 #include "elf.h"
 #include "../drivers/screen.h"
+#include "../kernel/heap.h"
+#include "../libs/string.h"
 
 static inline Elf32_Shdr_t *elf_sheader(Elf32_Ehdr_t *hdr) {
 	return (Elf32_Shdr_t *)((int)hdr + hdr->e_shoff);
@@ -218,7 +220,7 @@ void *elf_load_file(void *file) {
 	Elf32_Ehdr_t *hdr = (Elf32_Ehdr_t *)file;
 	if(!elf_check_supported(hdr)) {
 		puts("ELF File cannot be loaded.\n");
-		return;
+		return 0;
 	}
 	switch(hdr->e_type) {
 		case ET_EXEC:

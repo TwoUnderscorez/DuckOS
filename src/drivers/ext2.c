@@ -40,7 +40,7 @@ static int determine_block_of_inode(int inode) {
 static int determine_block_group_addr(int block_group_num) {
     return ext2_superblock->NOF_BLOCKS_IN_BLOCK_GROUP * (unsigned int)block_group_num + EXT2_BLOCK_GROUP_DESCRIPTOR_OFFSET;
 }
-#pragma endregion
+#pragma endregionc
 
 #pragma region convertions
 static int ext2_block_to_lba(int block_num){
@@ -91,7 +91,7 @@ static void print_fs_info() {
 
 static EXT2_BLOCK_GROUP_DESCRIPTOR_t * load_block_group_descriptor(int block_group_num) {
     EXT2_BLOCK_GROUP_DESCRIPTOR_t * ext2_gp_desc = malloc(512);
-    if(!ext2_gp_desc) __asm__("int $0x08");
+    if(!ext2_gp_desc) puts("null");
     int addr = determine_block_group_addr(block_group_num);
     ata_read_sectors(ext2_block_to_lba(addr), 1, (char *)ext2_gp_desc);
     return ext2_gp_desc;
@@ -116,7 +116,7 @@ EXT2_INODE_t * load_inode(int inode_num) {
     int index = determine_index_of_inode_in_inode_table(inode_num);
     // alloc enough memory for the inode table
     EXT2_INODE_t * inode_table = malloc(512*(index/512 + 1));
-    if(!inode_table) __asm__("int $0x08");
+    if(!inode_table) puts("null");
     EXT2_BLOCK_GROUP_DESCRIPTOR_t * blkgp = load_block_group_descriptor(block_group);
     // get the inode table addr from the block group descriptor
     int addr = determine_block_group_addr(block_group) + blkgp->inode_table_addr - 2;
@@ -124,7 +124,7 @@ EXT2_INODE_t * load_inode(int inode_num) {
     ata_read_sectors(ext2_block_to_lba(addr), index/512 + 1, (char *)inode_table);
     // alloc mem for a single inode
     EXT2_INODE_t * ret_inode = malloc(sizeof(EXT2_INODE_t));
-    if(!ret_inode) __asm__("int $0x08");
+    if(!ret_inode) puts("null");
     // copy over the requested inode
     memcpy((void *)ret_inode, (void *)&inode_table[index], sizeof(EXT2_INODE_t));
     // free the table and the descriptor and return the inode
@@ -136,11 +136,12 @@ EXT2_INODE_t * load_inode(int inode_num) {
 static EXT2_DIRECTORY_ENTRY_t * load_directory_structure(int inode_num) {
     // get the dir's inode
     EXT2_INODE_t * inode = load_inode(inode_num);
-    EXT2_DIRECTORY_ENTRY_t * dirinfo = malloc(2*ATA_SECTOR_SIZE);
-    if(!dirinfo) __asm__("int $0x08");
+    EXT2_DIRECTORY_ENTRY_t * dirinfo = malloc(2*inode->size_low);
+    //                                        ^ idk why
+    if(!dirinfo) puts("null");
     int i;
     // read the contents
-    for(i = 0; i < inode->size_low/1024<<ext2_superblock->LOG2_BLOCK_SIZE; i++) {
+    for(i = 0; i < inode->size_low/(1024<<ext2_superblock->LOG2_BLOCK_SIZE); i++) {
         ata_read_sectors( ext2_block_to_lba(inode->direct_block_pointers[i]), 
                           (1024<<ext2_superblock->LOG2_BLOCK_SIZE)/ATA_SECTOR_SIZE, 
                           (char *)( (unsigned int)dirinfo + (1024<<ext2_superblock->LOG2_BLOCK_SIZE)*i) );

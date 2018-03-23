@@ -1,4 +1,5 @@
 #include "string.h"
+#include "../drivers/screen.h"
 
 // Int TO Ascii
 char * itoa( int value, char * str, int base )
@@ -163,7 +164,7 @@ char *strstr(char *str, char *substr)
 
 void hexDump (char *desc, void *addr, int len) {
     int i;
-    unsigned char buff[17];
+    char buff[17];
     unsigned char *pc = (unsigned char*)addr;
 
     // Output description if given.
@@ -176,7 +177,7 @@ void hexDump (char *desc, void *addr, int len) {
         return;
     }
     if (len < 0) {
-        puts("  NEGATIVE LENGTH: %i\n",len);
+        puts("  NEGATIVE LENGTH\n");
         return;
     }
 

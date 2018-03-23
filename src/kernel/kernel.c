@@ -47,21 +47,20 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	init_ext2fs();
 	puts("Filesystem is ready!\n");
 	puts("Printing filesystem recursively...\n");
+	getc();
 	print_filesystem(EXT2_ROOT_DIR_INODE_NUM, 0);
 	puts("OK\n");
 	puts("Loading ELF... ");
 	int * mbuff = malloc(1024);
-	load_file(4036, 0, 0, (void *)mbuff);
+	load_file(4035, 0, 0, (void *)mbuff);
 	puts("OK\n");
 	getc();
 	hexDump("elffile", mbuff, 256);
 	getc();
 	puts("Parsing ELF...\n");
-	int i;
-	if(elf_check_supported(mbuff)) {
+	if(elf_check_supported((Elf32_Ehdr_t *)mbuff)) {
 		elf_load_file(mbuff);
 	}
-	
 	puts("Press any key to enter free write mode.\n");
 	getc();
     free_write();

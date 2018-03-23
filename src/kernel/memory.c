@@ -12,7 +12,7 @@ page_directory_table_entry_t page_dir[512] __attribute__((aligned(0x1000)));
 page_table_entry_t page_tab[512] __attribute__((aligned(0x1000)));
 multiboot_info_t * mbd;
 unsigned int startframe;
-unsigned char frame_map[512];
+unsigned char frame_map[131072];
 unsigned int pre_frame_map[20];
 
 void init_memory(multiboot_info_t * mymbd) {
@@ -30,7 +30,12 @@ void init_memory(multiboot_info_t * mymbd) {
     page_dir[1].ro_rw = 1;
     page_dir[1].size = 1;
     page_dir[1].page_table_address = 0x200000>>12;
-    page_dir[1].kernel_user = 0;
+    page_dir[2].kernel_user = 0;
+    page_dir[2].present = 1;
+    page_dir[2].ro_rw = 1;
+    page_dir[2].size = 1;
+    page_dir[2].page_table_address = 0x400000>>12;
+    page_dir[2].kernel_user = 0;
     ////////////////////////////////////////////////////////////////////////////
     // An unsuccessful attempt at making a Higher Half Kernel
     // unsigned int i, address = 0xB0000000;
@@ -74,7 +79,7 @@ static unsigned int kalloc_frame_int()
 {
     unsigned int i = 0;
     // Search of an unused frame
-    while(bitmapGet(frame_map, i))
+    while(bitmapGet((unsigned char *)frame_map, i))
     {
         i++;
         if(i == 512)
@@ -84,7 +89,7 @@ static unsigned int kalloc_frame_int()
         }
     }
     // Set frame to used status
-    bitmapSet(frame_map, i);
+    bitmapSet((unsigned char *)frame_map, i);
     // Return the physical address
     return(startframe + (i*0x1000));
 }
@@ -127,7 +132,7 @@ void kfree_frame(unsigned int page_frame_addr)
     // get the offset from the first frame
     page_frame_addr = (unsigned int)(page_frame_addr - startframe); 
     // Divide by 4kb to get the index of the page frame in frame_map
-    bitmapReset(&frame_map, ((unsigned int)page_frame_addr)/0x1000);
+    bitmapReset((unsigned char *)frame_map, ((unsigned int)page_frame_addr)/0x1000);
 }
 
 // Create a page directory pointer table for a userland process
