@@ -18,7 +18,7 @@ unsigned int pre_frame_map[20];
 void init_memory(multiboot_info_t * mymbd) {
     mbd = mymbd;
     startframe = 0x400000;
-    // Map a 2 mb single page using an entry in the page directory table (0-0x200000)
+    // Map a 2 mb single page using an entry in the page directory table (0-0x200000) * 3
     page_dir_ptr_tab[0].present = 1;
     page_dir_ptr_tab[0].page_directory_table_address = (unsigned int)&page_dir>>12;
     page_dir[0].present = 1;
@@ -57,6 +57,7 @@ void init_memory(multiboot_info_t * mymbd) {
     enablePaePagingAsm(); 
     loadPageDirectoryAsm((unsigned int *)&page_dir_ptr_tab);
     enablePagingAsm();
+    apply_mmap_to_frame_map();
 }
 
 void dump_mmap(void) {
@@ -71,6 +72,30 @@ void dump_mmap(void) {
         puts(" type: 0x");
         screen_print_int(mmap_ptr->type, 16);
         puts("\n");
+        mmap_ptr = (multiboot_memory_map_t *)((unsigned int)mmap_ptr + sizeof(multiboot_memory_map_t));
+    }
+}
+
+void apply_addr_to_frame_map(unsigned int base, unsigned int limit) {
+    int limit_frame = addr_to_frameidx(limit);
+    for (base; addr_to_frameidx(base) <= limit_frame; base += 0x1000) {
+        bitmapSet(&frame_map, addr_to_frameidx(base));
+    }
+}
+
+void apply_mmap_to_frame_map(void) {
+    multiboot_memory_map_t * mmap_ptr = (multiboot_memory_map_t *)mbd->mmap_addr;
+    while((unsigned int)mmap_ptr < (unsigned int)(mbd->mmap_addr + mbd->mmap_length) ){
+        puts("Found {base: 0x");
+        screen_print_int(mmap_ptr->addr, 16);
+        puts(" length: 0x");
+        screen_print_int(mmap_ptr->len, 16);
+        puts(" size: 0x");
+        screen_print_int(mmap_ptr->size, 16);
+        puts(" type: 0x}, applying...");
+        screen_print_int(mmap_ptr->type, 16);
+        apply_addr_to_frame_map(mmap_ptr->addr, mmap_ptr->len);
+        puts("OK!\n");
         mmap_ptr = (multiboot_memory_map_t *)((unsigned int)mmap_ptr + sizeof(multiboot_memory_map_t));
     }
 }
@@ -179,4 +204,12 @@ unsigned int create_pdpt() {
     enablePagingAsm();
     asmsti();
     return task_pdpt;
+}
+
+int addr_to_frameidx(unsigned int addr) {
+    return addr/0x1000;
+}
+
+unsigned int frameidx_to_addr(int frameidx) {
+    return frameidx*0x1000;
 }
