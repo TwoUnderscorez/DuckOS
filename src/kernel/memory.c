@@ -16,6 +16,7 @@ unsigned char frame_map[131072];
 unsigned int pre_frame_map[20];
 
 void init_memory(multiboot_info_t * mymbd) {
+    memset(&frame_map, '\0', 131072);
     mbd = mymbd;
     startframe = 0x400000;
     // Map a 2 mb single page using an entry in the page directory table (0-0x200000) * 3
@@ -57,6 +58,7 @@ void init_memory(multiboot_info_t * mymbd) {
     enablePaePagingAsm(); 
     loadPageDirectoryAsm((unsigned int *)&page_dir_ptr_tab);
     enablePagingAsm();
+    puts("Applying MMAP to the frame map...\n");
     apply_mmap_to_frame_map();
 }
 
@@ -92,12 +94,16 @@ void apply_mmap_to_frame_map(void) {
         screen_print_int(mmap_ptr->len, 16);
         puts(" size: 0x");
         screen_print_int(mmap_ptr->size, 16);
-        puts(" type: 0x}, applying...");
+        puts(" type: 0x");
         screen_print_int(mmap_ptr->type, 16);
-        apply_addr_to_frame_map(mmap_ptr->addr, mmap_ptr->len);
+        puts("}, applying... ");
+        apply_addr_to_frame_map(mmap_ptr->addr,mmap_ptr->addr + mmap_ptr->len);
         puts("OK!\n");
         mmap_ptr = (multiboot_memory_map_t *)((unsigned int)mmap_ptr + sizeof(multiboot_memory_map_t));
     }
+    puts("Kernel space {base: 0x100000 limit: 0x600000}, applying... ");
+    apply_addr_to_frame_map(0x100000, 0x600000);
+    puts("OK\n");
 }
 
 static unsigned int kalloc_frame_int()
@@ -212,4 +218,18 @@ int addr_to_frameidx(unsigned int addr) {
 
 unsigned int frameidx_to_addr(int frameidx) {
     return frameidx*0x1000;
+}
+
+void dump_frame_map(void) {
+    unsigned int i;
+    int used_frames = 0;
+    puts("Scanning frame map, please wait...\n");
+    for(i = 0; i < 131072*8; i++) {
+        if(bitmapGet(frame_map, i)){
+            used_frames += 1;
+        }
+    }
+    puts("Used frames: ");
+    screen_print_int(used_frames, 10);
+    puts("\n");
 }

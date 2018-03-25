@@ -119,5 +119,6 @@ void init_ext2fs();
 void print_filesystem(int inode_num, int tab_count);
 EXT2_INODE_t * load_inode(int inode_num);
 void load_file(int inode_num, int seek, int skip, void * buff);
+void print_fs_info();
 
 #endif

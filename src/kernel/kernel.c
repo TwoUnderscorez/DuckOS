@@ -15,37 +15,46 @@
 
 int kmain(multiboot_info_t * mbd, unsigned int magic){
 	screen_clear();
+	int i;
 	if (magic!=0x2BADB002){
 		puts("Invalid multiboot header.");
 		return -1;
 	}
 	puts("Welcome to DuckOS!!!\n");
-	puts("Setting up the GDT...\n");
+	puts("Setting up the GDT... \n");
 	gdt_setup();
-	puts("GDT set.\n");
+	puts("[OK]\n");
 	puts("Initialzing interrupts...\n");
 	puts("Setting up the IDT... ");
 	idt_setup();
-	puts("[IDT set]\n");
+	puts("[OK]\n");
 	puts("Setting up the PIC... ");
 	PIC_remap();
-	puts("[PIC remapped]\n");
+	puts("[OK]\n");
 	puts("Sending test interrupt...\n");
 	__asm__("int $0x80");
+	for(i=0;i<100000000;i++);
 	puts("Initialzing memory...\n");
 	init_memory(mbd);
-	puts("Memory initialized.\n");
-	puts("Initialzing heap...\n");
+	puts("Memory initialzed!\n");
+	dump_frame_map();
+	for(i=0;i<100000000;i++);
+	puts("Initialzing heap... ");
 	init_heap();
-	puts("Heap initialized.\n");
+	puts("[OK]\n");
+	for(i=0;i<100000000;i++);
 	puts("Initialzing tasking... ");
 	__asm__("int $0x81");
-	puts("OK\nRunning other task...\n");
+	puts("[OK]\nRunning other task...\n");
 	__asm__("int $0x82");
 	puts("Returned to main task!\n");
-	puts("Initialzing EXT2 filesystem...\n");
+	dump_frame_map();
+	for(i=0;i<100000000;i++);
+	puts("Initialzing EXT2 filesystem... ");
 	init_ext2fs();
-	puts("Filesystem is ready!\n");
+	puts("[OK]\n");
+	puts("Found ext2 filesystem!\n");
+    print_fs_info(); 
 	puts("Printing filesystem recursively...\n");
 	getc();
 	print_filesystem(EXT2_ROOT_DIR_INODE_NUM, 0);

@@ -65,7 +65,7 @@ static void verify_superblock() {
     __asm__("int $0x08");
 }
 
-static void print_fs_info() {
+void print_fs_info() {
     puts("{signature : ");
     screen_print_int(ext2_superblock->EXT2_SIGNATURE, 16);
     puts("; version : ");
@@ -225,7 +225,5 @@ void load_file(int inode_num, int seek, int skip, void * buff) {
 
 void init_ext2fs() {
     load_superblock(EXT2_SUPERBLOCK_OFFSET);
-    verify_superblock();
-    puts("Found ext2 filesystem!\n");
-    print_fs_info();    
+    verify_superblock();   
 }

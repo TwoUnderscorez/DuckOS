@@ -20,7 +20,8 @@ void screen_clear(){
 
 // Scrolls the screen
 void screen_scroll(){
-	int i;
+	int i = 5000000;
+    while(i) --i;
 	for(i=160;i<4000;i++){
 		vidmem[i-160]=vidmem[i];
 	}

@@ -70,4 +70,5 @@ void kfree_frame(unsigned int page_frame_addr);
 unsigned int create_pdpt();
 int addr_to_frameidx(unsigned int addr);
 unsigned int frameidx_to_addr(int frameidx);
+void dump_frame_map(void);
 #endif
