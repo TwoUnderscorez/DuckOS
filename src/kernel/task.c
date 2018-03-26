@@ -55,4 +55,6 @@ void roundRobinNext(registers_t * regs) {
     memcpy(&last->regs, regs, (int)sizeof(registers_t));
     // Load runningTask's state
     memcpy(regs, &runningTask->regs, (int)sizeof(registers_t));
+    // Set ISR stack
+    set_kernel_stack((unsigned int)runningTask->regs.kesp);
 }
