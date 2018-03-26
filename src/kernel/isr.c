@@ -6,8 +6,12 @@
 void isr_handler(registers_t regs)
 {
 	if(regs.int_no == 0x08) {
-		puts("[KERNEL PANIC] int 0x08. double fault. system halted.");
+		puts("[KERNEL PANIC] int 0x08. Double fault. System halted. ):");
 		while(1);
+	}
+	else if(regs.int_no == 0x84) {
+		puts("[KERNEL PANIC] int 0x84: ");
+		puts((char *)regs.eax);
 	}
 	else if(regs.int_no == ATA_IRQ_LINE){
 		ata_irq_handler();

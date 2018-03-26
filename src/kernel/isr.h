@@ -7,7 +7,7 @@ struct registers
 	unsigned int cr3, ds;								 // Pushed by isr_common_stub in asmsir.asm
 	unsigned int edi, esi, ebp, kesp, ebx, edx, ecx, eax;//
 	unsigned int int_no, err_code; 						 // Pushed by ISRs in asmisr.asm
-	unsigned int eip, cs, eflags, useresp, ss; 			 // Pushed bu int opcode
+	unsigned int eip, cs, eflags, useresp, ss; 			 // Pushed by int opcode
 };
 
 typedef struct registers registers_t;
