@@ -100,8 +100,8 @@ void dump_mmap(void) {
 void apply_addr_to_frame_map(unsigned int base, unsigned int limit, unsigned char used) {
     int limit_frame = addr_to_frameidx(limit), base_frame = addr_to_frameidx(base);
     for (; base_frame <= limit_frame; base_frame++) {
-        if(used) bitmapSet(&frame_map, base_frame);
-        else bitmapReset(&frame_map, base_frame);
+        if(used) bitmapSet((unsigned char *)&frame_map, base_frame);
+        else bitmapReset((unsigned char *)&frame_map, base_frame);
     }
 }
 
@@ -211,12 +211,11 @@ void kfree_frame(unsigned int page_frame_addr)
 
 // Create a page directory pointer table for a userland process
 unsigned int create_pdpt() {
-    unsigned int task_pdpt, task_dt, task_tab;
+    unsigned int task_pdpt, task_dt;
     // Get a page frame for each pdpt, dt, pt because their address 
     // must be 0x1000 (4096) byte aligned.
     task_pdpt = kalloc_frame();
     task_dt = kalloc_frame();
-    task_tab = kalloc_frame();
     // We are entering a critical section
     asmcli();
     // Temporarily disable paging so we can write to the physical
@@ -227,11 +226,9 @@ unsigned int create_pdpt() {
     temp_pdpt = (page_directory_pointer_table_entry_t *)task_pdpt;
     page_directory_table_entry_t * temp_dt;
     temp_dt = (page_directory_table_entry_t *)task_dt;
-    page_table_entry_t * temp_tab;
-    temp_tab = (page_table_entry_t *)task_tab;
+    // Map the kernel space
     temp_pdpt[0].page_directory_table_address = (unsigned int)temp_dt>>12;
     temp_pdpt[0].present = 1;
-    // Map the kernel space
     temp_dt[0].present = 1;
     temp_dt[0].ro_rw = 1;
     temp_dt[0].size = 1;
@@ -256,7 +253,7 @@ unsigned int create_pdpt() {
     /* Temporary loading of the user task to the appropriate location
      * in memory. will be removed. 
      */
-    memcpy(data->physical_page_address<<12, &usermain, 0x1000); // temp
+    memcpy((void *)(data->physical_page_address<<12), &usermain, 0x1000); // temp
     enablePagingAsm();
     asmsti();
     return task_pdpt;
@@ -276,13 +273,13 @@ void map_vaddr_to_pdpt(page_directory_pointer_table_entry_t * pdpt,
         pdpt[pdpt_idx].present = 1;
         pdpt[pdpt_idx].kernel_user = data->kernel_user;
     }
-    pdir = pdpt[pdpt_idx].page_directory_table_address<<12;
+    pdir = (page_directory_table_entry_t *)(pdpt[pdpt_idx].page_directory_table_address<<12);
     if(!pdir[pd_idx].present) {
         pdir[pd_idx].page_table_address = (unsigned int)kalloc_frame()>>12;
         pdir[pd_idx].present = 1;
         pdir[pd_idx].kernel_user = data->kernel_user;
     }
-    ptab = pdir[pd_idx].page_table_address<<12;
+    ptab = (page_table_entry_t *)(pdir[pd_idx].page_table_address<<12);
     memcpy(&ptab[pt_idx], data, sizeof(page_table_entry_t));
 }
 

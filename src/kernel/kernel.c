@@ -15,7 +15,6 @@
 
 int kmain(multiboot_info_t * mbd, unsigned int magic){
 	screen_clear();
-	int i;
 	if (magic!=0x2BADB002){
 		puts("Invalid multiboot header.");
 		return -1;
