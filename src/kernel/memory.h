@@ -71,4 +71,5 @@ unsigned int create_pdpt();
 int addr_to_frameidx(unsigned int addr);
 unsigned int frameidx_to_addr(int frameidx);
 void dump_frame_map(void);
+void map_vaddr_to_pdpt(page_directory_pointer_table_entry_t * pdpt, page_table_entry_t * data, unsigned int vaddr);
 #endif

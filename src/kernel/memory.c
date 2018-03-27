@@ -99,7 +99,7 @@ void dump_mmap(void) {
 
 void apply_addr_to_frame_map(unsigned int base, unsigned int limit, unsigned char used) {
     int limit_frame = addr_to_frameidx(limit), base_frame = addr_to_frameidx(base);
-    for (base_frame; base_frame <= limit_frame; base_frame++) {
+    for (; base_frame <= limit_frame; base_frame++) {
         if(used) bitmapSet(&frame_map, base_frame);
         else bitmapReset(&frame_map, base_frame);
     }
@@ -142,7 +142,10 @@ void apply_mmap_to_frame_map(void) {
         mmap_ptr = (multiboot_memory_map_t *)((unsigned int)mmap_ptr + sizeof(multiboot_memory_map_t));
     }
     puts("Kernel space {base: 0x100000 limit: 0x600000}, applying... ");
+    puts("OK!\n");
     apply_addr_to_frame_map(0x100000, 0x600000, 1);
+    puts("VGA memory {base: 0xb8000 limit: 0xb8fa0}, applying... ");
+    apply_addr_to_frame_map(0xb8000, 0xb8fa0, 1);
     puts("OK!\n");
 }
 
@@ -235,22 +238,52 @@ unsigned int create_pdpt() {
     temp_dt[0].page_table_address = 0;
     temp_dt[0].kernel_user = 0; 
     // Map user space (0x300000-0x301000)
-    temp_dt[1].present = 1;
-    temp_dt[1].page_table_address = (unsigned int)temp_tab>>12;
-    temp_dt[1].kernel_user = 1;
-    temp_tab[256].present = 1;
-    temp_tab[256].ro_rw = 1;
-    unsigned int fr = kalloc_frame();
-    temp_tab[256].physical_page_address = fr>>12;
-    temp_tab[256].kernel_user = 1;
+    page_table_entry_t * data = malloc(sizeof(page_table_entry_t));
+    data->present = 1;
+    data->physical_page_address = kalloc_frame()>>12;
+    data->ro_rw = 1;
+    data->kernel_user = 1;
+    map_vaddr_to_pdpt(temp_pdpt, data, 0x300000);
+    // temp_dt[1].present = 1;
+    // temp_dt[1].page_table_address = (unsigned int)temp_tab>>12;
+    // temp_dt[1].kernel_user = 1;
+    // temp_tab[256].present = 1;
+    // temp_tab[256].ro_rw = 1;
+    // unsigned int fr = kalloc_frame();
+    // temp_tab[256].physical_page_address = fr>>12;
+    // temp_tab[256].kernel_user = 1;
     // Re-enable interrupts and paging
     /* Temporary loading of the user task to the appropriate location
      * in memory. will be removed. 
      */
-    memcpy((void *)fr, &usermain, 0x1000); // temp
+    memcpy(data->physical_page_address<<12, &usermain, 0x1000); // temp
     enablePagingAsm();
     asmsti();
     return task_pdpt;
+}
+
+void map_vaddr_to_pdpt(page_directory_pointer_table_entry_t * pdpt, 
+                       page_table_entry_t * data, unsigned int vaddr)
+{
+    unsigned int pdpt_idx, pd_idx, pt_idx;
+    page_directory_table_entry_t * pdir;
+    page_table_entry_t * ptab;
+    pdpt_idx = (vaddr>>29)&0b11;
+    pd_idx   = (vaddr>>21)&0b00111111111;
+    pt_idx   = (vaddr>>12)&0b00000000000111111111;
+    if(!pdpt[pdpt_idx].present) {
+        pdpt[pdpt_idx].page_directory_table_address = (unsigned int)kalloc_frame()>>12;
+        pdpt[pdpt_idx].present = 1;
+        pdpt[pdpt_idx].kernel_user = data->kernel_user;
+    }
+    pdir = pdpt[pdpt_idx].page_directory_table_address<<12;
+    if(!pdir[pd_idx].present) {
+        pdir[pd_idx].page_table_address = (unsigned int)kalloc_frame()>>12;
+        pdir[pd_idx].present = 1;
+        pdir[pd_idx].kernel_user = data->kernel_user;
+    }
+    ptab = pdir[pd_idx].page_table_address<<12;
+    memcpy(&ptab[pt_idx], data, sizeof(page_table_entry_t));
 }
 
 int addr_to_frameidx(unsigned int addr) {
@@ -264,13 +297,12 @@ unsigned int frameidx_to_addr(int frameidx) {
 void dump_frame_map(void) {
     unsigned int i;
     int used_frames = 0;
-    puts("Scanning frame map, please wait...\n");
     for(i = 0; i < 131072*8; i++) {
         if(bitmapGet(frame_map, i)){
             used_frames += 1;
         }
     }
-    puts("Used frames: ");
+    puts("Used page frames: ");
     screen_print_int(used_frames, 10);
     puts("\n");
 }

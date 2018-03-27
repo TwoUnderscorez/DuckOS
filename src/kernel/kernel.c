@@ -21,10 +21,9 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 		return -1;
 	}
 	puts("Welcome to DuckOS!!!\n");
-	puts("Setting up the GDT... \n");
+	puts("Setting up the GDT... ");
 	gdt_setup();
 	puts("[OK]\n");
-	puts("Initialzing interrupts...\n");
 	puts("Setting up the IDT... ");
 	idt_setup();
 	puts("[OK]\n");
@@ -33,6 +32,7 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	puts("[OK]\n");
 	puts("Sending test interrupt...\n");
 	__asm__("int $0x80");
+	getc();
 	puts("Initialzing memory...\n");
 	init_memory(mbd);
 	puts("Memory initialzed!\n");

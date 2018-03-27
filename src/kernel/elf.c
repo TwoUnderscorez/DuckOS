@@ -165,9 +165,9 @@ static int elf_map_pdpt(Elf32_Ehdr_t *hdr) {
 		// add mapping in pdpt based on section->sh_addr
 		// and section->sh_entsize
 		puts("vaddr: ");
-		screen_print_int(segment->p_vaddr, 2);
+		screen_print_int(segment->p_vaddr, 16);
 		puts(" Size: "); 
-		screen_print_int(segment->p_memsz, 2);
+		screen_print_int(segment->p_memsz, 10);
 		puts("\n");
 	}
 	return 0;
@@ -252,6 +252,7 @@ void *elf_load_file(void *file) {
 	switch(hdr->e_type) {
 		case ET_EXEC:
 			puts("ET_EXEC\n");
+			elf_map_pdpt(hdr);
 			return 0;
 		case ET_REL:
             puts("ET_REL\n");
