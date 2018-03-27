@@ -11,6 +11,14 @@ static inline Elf32_Shdr_t *elf_section(Elf32_Ehdr_t *hdr, int idx) {
 	return &elf_sheader(hdr)[idx];
 }
 
+static inline Elf32_Phdr_t *elf_pheader(Elf32_Ehdr_t *hdr) {
+	return (Elf32_Phdr_t *)((int)hdr + hdr->e_phoff);
+}
+ 
+static inline Elf32_Phdr_t *elf_segment(Elf32_Ehdr_t *hdr, int idx) {
+	return &elf_pheader(hdr)[idx];
+}
+
 int elf_check_file(Elf32_Ehdr_t *hdr) {
 	if(!hdr) return 0;
 	if(hdr->e_ident[EI_MAG0] != ELFMAG0) {
@@ -144,6 +152,25 @@ static int elf_do_reloc(Elf32_Ehdr_t *hdr, Elf32_Rel_t *rel, Elf32_Shdr_t *relta
 			return ELF_RELOC_ERR;
 	}
 	return symval;
+}
+
+static int elf_map_pdpt(Elf32_Ehdr_t *hdr) {
+	Elf32_Phdr_t *phdr = elf_pheader(hdr);
+	unsigned int i;
+	// Iterate over section headers
+	for(i = 0; i < hdr->e_phnum; i++) {
+		Elf32_Phdr_t *segment = &phdr[i];
+		// Skip if it the section is empty
+		if(!segment->p_memsz) return -1;
+		// add mapping in pdpt based on section->sh_addr
+		// and section->sh_entsize
+		puts("vaddr: ");
+		screen_print_int(segment->p_vaddr, 2);
+		puts(" Size: "); 
+		screen_print_int(segment->p_memsz, 2);
+		puts("\n");
+	}
+	return 0;
 }
 
 static int elf_load_stage1(Elf32_Ehdr_t *hdr) {

@@ -11,14 +11,14 @@ page_directory_pointer_table_entry_t page_dir_ptr_tab[4] __attribute__((aligned(
 page_directory_table_entry_t page_dir[512] __attribute__((aligned(0x1000)));
 page_table_entry_t page_tab[512] __attribute__((aligned(0x1000)));
 multiboot_info_t * mbd;
-unsigned int startframe;
 unsigned char frame_map[131072];
 unsigned int pre_frame_map[20];
+unsigned int max_ram;
+unsigned int max_frameidx;
 
 void init_memory(multiboot_info_t * mymbd) {
     memset(&frame_map, '\0', 131072);
     mbd = mymbd;
-    startframe = 0x400000;
     // Map a 2 mb single page using an entry in the page directory table (0-0x200000) * 3
     page_dir_ptr_tab[0].present = 1;
     page_dir_ptr_tab[0].page_directory_table_address = (unsigned int)&page_dir>>12;
@@ -60,6 +60,12 @@ void init_memory(multiboot_info_t * mymbd) {
     enablePagingAsm();
     puts("Applying MMAP to the frame map...\n");
     apply_mmap_to_frame_map();
+    max_frameidx = addr_to_frameidx(max_ram);
+    puts("End of memory is at 0x");
+    screen_print_int(max_ram, 16);
+    puts(", that's ");
+    screen_print_int(max_frameidx, 10);
+    puts(" 4kb page frames.\n");
 }
 
 void dump_mmap(void) {
@@ -71,21 +77,36 @@ void dump_mmap(void) {
         screen_print_int(mmap_ptr->len, 16);
         puts(" size: 0x");
         screen_print_int(mmap_ptr->size, 16);
-        puts(" type: 0x");
-        screen_print_int(mmap_ptr->type, 16);
+        puts(" type: ");
+        switch (mmap_ptr->type) {
+            case MULTIBOOT_MEMORY_AVAILABLE:
+                puts("AVAILABLE");
+                break;
+            case MULTIBOOT_MEMORY_BADRAM:
+                puts("BADRAM");
+                break;
+            case MULTIBOOT_MEMORY_NVS:
+                puts("NVS");
+                break;
+            case MULTIBOOT_MEMORY_RESERVED:
+                puts("RESERVED");
+                break;
+        }
         puts("\n");
         mmap_ptr = (multiboot_memory_map_t *)((unsigned int)mmap_ptr + sizeof(multiboot_memory_map_t));
     }
 }
 
-void apply_addr_to_frame_map(unsigned int base, unsigned int limit) {
-    int limit_frame = addr_to_frameidx(limit);
-    for (base; addr_to_frameidx(base) <= limit_frame; base += 0x1000) {
-        bitmapSet(&frame_map, addr_to_frameidx(base));
+void apply_addr_to_frame_map(unsigned int base, unsigned int limit, unsigned char used) {
+    int limit_frame = addr_to_frameidx(limit), base_frame = addr_to_frameidx(base);
+    for (base_frame; base_frame <= limit_frame; base_frame++) {
+        if(used) bitmapSet(&frame_map, base_frame);
+        else bitmapReset(&frame_map, base_frame);
     }
 }
 
 void apply_mmap_to_frame_map(void) {
+    unsigned int tmp_max_ram;
     multiboot_memory_map_t * mmap_ptr = (multiboot_memory_map_t *)mbd->mmap_addr;
     while((unsigned int)mmap_ptr < (unsigned int)(mbd->mmap_addr + mbd->mmap_length) ){
         puts("Found {base: 0x");
@@ -94,26 +115,45 @@ void apply_mmap_to_frame_map(void) {
         screen_print_int(mmap_ptr->len, 16);
         puts(" size: 0x");
         screen_print_int(mmap_ptr->size, 16);
-        puts(" type: 0x");
-        screen_print_int(mmap_ptr->type, 16);
-        puts("}, applying... ");
-        apply_addr_to_frame_map(mmap_ptr->addr,mmap_ptr->addr + mmap_ptr->len);
-        puts("OK!\n");
+        puts(" type: ");
+        switch (mmap_ptr->type) {
+            case MULTIBOOT_MEMORY_AVAILABLE:
+                puts("AVL}\n");
+                break;
+            case MULTIBOOT_MEMORY_BADRAM:
+                puts("BADRAM}, applying... ");
+                apply_addr_to_frame_map(mmap_ptr->addr,mmap_ptr->addr + mmap_ptr->len, 1);
+                puts("OK!\n");
+                break;
+            case MULTIBOOT_MEMORY_NVS:
+                puts("NVS}, applying... ");
+                apply_addr_to_frame_map(mmap_ptr->addr,mmap_ptr->addr + mmap_ptr->len, 1);
+                puts("OK!\n");
+                break;
+            case MULTIBOOT_MEMORY_RESERVED:
+                puts("RSV}, applying... ");
+                apply_addr_to_frame_map(mmap_ptr->addr,mmap_ptr->addr + mmap_ptr->len, 1);
+                puts("OK!\n");
+                break;
+        }
+        tmp_max_ram = mmap_ptr->addr + mmap_ptr->len;
+        if(tmp_max_ram > max_ram)
+            max_ram = tmp_max_ram;
         mmap_ptr = (multiboot_memory_map_t *)((unsigned int)mmap_ptr + sizeof(multiboot_memory_map_t));
     }
     puts("Kernel space {base: 0x100000 limit: 0x600000}, applying... ");
-    apply_addr_to_frame_map(0x100000, 0x600000);
-    puts("OK\n");
+    apply_addr_to_frame_map(0x100000, 0x600000, 1);
+    puts("OK!\n");
 }
 
 static unsigned int kalloc_frame_int()
 {
-    unsigned int i = 0;
+    unsigned int i = 1;
     // Search of an unused frame
     while(bitmapGet((unsigned char *)frame_map, i))
     {
         i++;
-        if(i == 512)
+        if(i == max_frameidx)
         {
             // Return a null pointer if there were none found
             return(0);
@@ -122,7 +162,7 @@ static unsigned int kalloc_frame_int()
     // Set frame to used status
     bitmapSet((unsigned char *)frame_map, i);
     // Return the physical address
-    return(startframe + (i*0x1000));
+    return(i*0x1000);
 }
 
 unsigned int kalloc_frame()
@@ -161,7 +201,7 @@ unsigned int kalloc_frame()
 void kfree_frame(unsigned int page_frame_addr)
 {
     // get the offset from the first frame
-    page_frame_addr = (unsigned int)(page_frame_addr - startframe); 
+    page_frame_addr = (unsigned int)(page_frame_addr); 
     // Divide by 4kb to get the index of the page frame in frame_map
     bitmapReset((unsigned char *)frame_map, ((unsigned int)page_frame_addr)/0x1000);
 }
@@ -200,13 +240,14 @@ unsigned int create_pdpt() {
     temp_dt[1].kernel_user = 1;
     temp_tab[256].present = 1;
     temp_tab[256].ro_rw = 1;
-    temp_tab[256].physical_page_address = 0x300000>>12;
+    unsigned int fr = kalloc_frame();
+    temp_tab[256].physical_page_address = fr>>12;
     temp_tab[256].kernel_user = 1;
     // Re-enable interrupts and paging
     /* Temporary loading of the user task to the appropriate location
      * in memory. will be removed. 
      */
-    memcpy((void *)0x300000, &usermain, 0x1000); // temp
+    memcpy((void *)fr, &usermain, 0x1000); // temp
     enablePagingAsm();
     asmsti();
     return task_pdpt;

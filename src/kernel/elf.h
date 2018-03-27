@@ -147,7 +147,7 @@ typedef struct {
 	Elf32_Word_t	p_memsz;
 	Elf32_Word_t	p_flags;
 	Elf32_Word_t	p_align;
-} Elf32_Phd_t;
+} Elf32_Phdr_t;
 
 // Methods
 int elf_check_file(Elf32_Ehdr_t *hdr);

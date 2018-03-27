@@ -63,7 +63,7 @@ extern void enablePaePagingAsm(void);
 extern void disablePagingAsm(void);
 void init_memory(multiboot_info_t * mbd);
 void dump_mmap(void);
-void apply_addr_to_frame_map(unsigned int base, unsigned int limit);
+void apply_addr_to_frame_map(unsigned int base, unsigned int limit, unsigned char used);
 void apply_mmap_to_frame_map(void);
 unsigned int kalloc_frame();
 void kfree_frame(unsigned int page_frame_addr);
