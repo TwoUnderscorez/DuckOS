@@ -12,9 +12,9 @@ struct task {
 
 typedef struct task task_t;
  
-void create_task(task_t*, void(*)(), unsigned int, unsigned int);
+void create_task(task_t *task, void (*main)(), unsigned int flags, unsigned int pagedir, unsigned int user_esp, unsigned int isr_esp);
 void roundRobinNext(registers_t * regs);
 extern void usermain(void);
-
+void add_task(task_t * task);
 
 #endif

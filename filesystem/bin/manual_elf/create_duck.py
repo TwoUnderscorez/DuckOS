@@ -12,7 +12,7 @@
 # int 0x82          
 
 ### SECTION .DATA
-# HWADDR db "Hello World!", 0x0A  
+# HWADDR db "Hello ELF!", 0x0A  
 
 out = ''
 
@@ -73,7 +73,7 @@ out += '\xCD\x82'
 # padding
 out += '\x00\x00'
 # .data segment
-out += 'Hello World!\x0A'
+out += 'Hello ELF!\x0A'
 
 f = file('elffile', 'r+wb')
 f.seek(0)

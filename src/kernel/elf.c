@@ -1,7 +1,11 @@
 #include "elf.h"
+#include "memory.h"
+#include "task.h"
 #include "../drivers/screen.h"
 #include "../kernel/heap.h"
 #include "../libs/string.h"
+#include "../asm/asmio.h"
+
 
 static inline Elf32_Shdr_t *elf_sheader(Elf32_Ehdr_t *hdr) {
 	return (Elf32_Shdr_t *)((int)hdr + hdr->e_shoff);
@@ -154,22 +158,44 @@ static int elf_do_reloc(Elf32_Ehdr_t *hdr, Elf32_Rel_t *rel, Elf32_Shdr_t *relta
 	return symval;
 }
 
-static int elf_map_pdpt(Elf32_Ehdr_t *hdr) {
+static int elf_map_pdpt(Elf32_Ehdr_t *hdr, page_directory_pointer_table_entry_t * pdpt) {
 	Elf32_Phdr_t *phdr = elf_pheader(hdr);
 	unsigned int i;
-	// Iterate over section headers
+	page_table_entry_t * data = malloc(sizeof(page_table_entry_t));
+	memset((void *)data, '\0', sizeof(page_table_entry_t));
+	// Iterate over program headers
 	for(i = 0; i < hdr->e_phnum; i++) {
 		Elf32_Phdr_t *segment = &phdr[i];
-		// Skip if it the section is empty
+		// Skip if it the segment is empty
 		if(!segment->p_memsz) return -1;
-		// add mapping in pdpt based on section->sh_addr
-		// and section->sh_entsize
+		// add mapping in pdpt based on segment->p_vaddr
+		// and segment->p_memsz
+		data->present = 1;
+		data->ro_rw = 1;
+		data->kernel_user = 1;
+		map_vaddr_to_pdpt(pdpt, data, segment->p_vaddr, segment->p_vaddr + segment->p_memsz);
+		disablePagingAsm();
+		memcpy((void *)( (unsigned int)(data->physical_page_address<<12) + (unsigned int)(segment->p_vaddr&0xFFF) ),
+			   (void *)( (unsigned int)hdr + (unsigned int)segment->p_offset ), 
+			   segment->p_filesz);
+		hexDump("seg",
+				(void *)((unsigned int)(data->physical_page_address<<12) + (unsigned int)(segment->p_vaddr&0xFFF)), 
+				segment->p_filesz);
+		enablePagingAsm();
 		puts("vaddr: ");
 		screen_print_int(segment->p_vaddr, 16);
+		puts("-");
+		screen_print_int(segment->p_vaddr + segment->p_memsz, 16);
 		puts(" Size: "); 
 		screen_print_int(segment->p_memsz, 10);
+		puts(" offset: ");
+		screen_print_int(segment->p_vaddr&0xFFF, 16);
+		puts(" at paddr: ");
+		screen_print_int( (unsigned int)(data->physical_page_address<<12) + (unsigned int)(segment->p_vaddr&0xFFF), 16);
 		puts("\n");
+
 	}
+	free(data);
 	return 0;
 }
 
@@ -242,6 +268,24 @@ static int elf_load_stage2(Elf32_Ehdr_t *hdr) {
 // 	// TODO : Parse the program header (if present)
 // 	return (void *)hdr->e_entry;
 // }
+
+static void elf_init_exec(Elf32_Ehdr_t * hdr) {
+	page_directory_pointer_table_entry_t * pdpt;
+	pdpt = (page_directory_pointer_table_entry_t *)create_pdpt();
+	elf_map_pdpt(hdr, pdpt);
+	task_t * elf_task = malloc(sizeof(task_t));
+	memset((void *)elf_task, '\0', sizeof(task_t));	
+	unsigned int usr_esp = 0x600FFF, isr_esp = 0x601FFF;
+	page_table_entry_t * data = malloc(sizeof(page_table_entry_t));
+	memset((void *)data, '\0', sizeof(page_table_entry_t));
+	data->present = 1;
+	data->ro_rw = 1;
+	data->kernel_user = 1;
+	map_vaddr_to_pdpt(pdpt, data, usr_esp, usr_esp);
+	map_vaddr_to_pdpt(pdpt, data, isr_esp, isr_esp);
+	create_task(elf_task, (void *)hdr->e_entry, 0x2000006, (unsigned int)pdpt, usr_esp, isr_esp);
+	add_task(elf_task);
+} 
  
 void *elf_load_file(void *file) {
 	Elf32_Ehdr_t *hdr = (Elf32_Ehdr_t *)file;
@@ -252,7 +296,7 @@ void *elf_load_file(void *file) {
 	switch(hdr->e_type) {
 		case ET_EXEC:
 			puts("ET_EXEC\n");
-			elf_map_pdpt(hdr);
+			elf_init_exec(hdr);
 			return 0;
 		case ET_REL:
             puts("ET_REL\n");

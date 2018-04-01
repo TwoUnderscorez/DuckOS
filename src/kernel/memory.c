@@ -22,21 +22,13 @@ void init_memory(multiboot_info_t * mymbd) {
     // Map a 2 mb single page using an entry in the page directory table (0-0x200000) * 3
     page_dir_ptr_tab[0].present = 1;
     page_dir_ptr_tab[0].page_directory_table_address = (unsigned int)&page_dir>>12;
-    page_dir[0].present = 1;
-    page_dir[0].ro_rw = 1;
-    page_dir[0].size = 1;
-    page_dir[0].page_table_address = 0;
-    page_dir[0].kernel_user = 0;
-    page_dir[1].present = 1;
-    page_dir[1].ro_rw = 1;
-    page_dir[1].size = 1;
-    page_dir[1].page_table_address = 0x200000>>12;
-    page_dir[2].kernel_user = 0;
-    page_dir[2].present = 1;
-    page_dir[2].ro_rw = 1;
-    page_dir[2].size = 1;
-    page_dir[2].page_table_address = 0x400000>>12;
-    page_dir[2].kernel_user = 0;
+    for(int i = 0; i < 3; i++) {
+        page_dir[i].present = 1;
+        page_dir[i].ro_rw = 1;
+        page_dir[i].size = 1;
+        page_dir[i].page_table_address = (i*0x200000)>>12;
+        page_dir[i].kernel_user = 0;
+    }
     ////////////////////////////////////////////////////////////////////////////
     // An unsuccessful attempt at making a Higher Half Kernel
     // unsigned int i, address = 0xB0000000;
@@ -229,58 +221,60 @@ unsigned int create_pdpt() {
     // Map the kernel space
     temp_pdpt[0].page_directory_table_address = (unsigned int)temp_dt>>12;
     temp_pdpt[0].present = 1;
-    temp_dt[0].present = 1;
-    temp_dt[0].ro_rw = 1;
-    temp_dt[0].size = 1;
-    temp_dt[0].page_table_address = 0;
-    temp_dt[0].kernel_user = 0; 
-    // Map user space (0x300000-0x301000)
-    page_table_entry_t * data = malloc(sizeof(page_table_entry_t));
-    data->present = 1;
-    data->physical_page_address = kalloc_frame()>>12;
-    data->ro_rw = 1;
-    data->kernel_user = 1;
-    map_vaddr_to_pdpt(temp_pdpt, data, 0x300000);
-    // temp_dt[1].present = 1;
-    // temp_dt[1].page_table_address = (unsigned int)temp_tab>>12;
-    // temp_dt[1].kernel_user = 1;
-    // temp_tab[256].present = 1;
-    // temp_tab[256].ro_rw = 1;
-    // unsigned int fr = kalloc_frame();
-    // temp_tab[256].physical_page_address = fr>>12;
-    // temp_tab[256].kernel_user = 1;
+    for(int i = 0; i < 3; i++/*temp, will be ++ once vaddrs won't overlap*/) {
+        temp_dt[i].present = 1;
+        temp_dt[i].ro_rw = 1;
+        temp_dt[i].size = 1;
+        temp_dt[i].page_table_address = (i*0x200000)>>12;
+        temp_dt[i].kernel_user = 0;
+    }
     // Re-enable interrupts and paging
-    /* Temporary loading of the user task to the appropriate location
-     * in memory. will be removed. 
-     */
-    memcpy((void *)(data->physical_page_address<<12), &usermain, 0x1000); // temp
     enablePagingAsm();
     asmsti();
     return task_pdpt;
 }
 
 void map_vaddr_to_pdpt(page_directory_pointer_table_entry_t * pdpt, 
-                       page_table_entry_t * data, unsigned int vaddr)
+                       page_table_entry_t * data, unsigned int base,
+                       unsigned int limit)
 {
-    unsigned int pdpt_idx, pd_idx, pt_idx;
+    // We are entering a critical section
+    asmcli();
+    // Temporarily disable paging so we can write to the physical
+    // addresses of paging tables without problems
+    disablePagingAsm();
+    unsigned int pdpt_idx, pd_idx, pt_idx, i = 0;
     page_directory_table_entry_t * pdir;
     page_table_entry_t * ptab;
-    pdpt_idx = (vaddr>>29)&0b11;
-    pd_idx   = (vaddr>>21)&0b00111111111;
-    pt_idx   = (vaddr>>12)&0b00000000000111111111;
-    if(!pdpt[pdpt_idx].present) {
-        pdpt[pdpt_idx].page_directory_table_address = (unsigned int)kalloc_frame()>>12;
-        pdpt[pdpt_idx].present = 1;
-        pdpt[pdpt_idx].kernel_user = data->kernel_user;
+    for(; base <= limit; base+=0x1000) {
+        // Find the indices of the vaddr in the pdpt, pd and pt.
+        pdpt_idx = (base>>29)&0b11;
+        pd_idx   = (base>>21)&0b00111111111;
+        pt_idx   = (base>>12)&0b00000000000111111111;
+        // Create a page directory pointer table entry for a page directory table if it's not present.
+        if(!pdpt[pdpt_idx].present) {
+            pdpt[pdpt_idx].page_directory_table_address = (unsigned int)kalloc_frame()>>12;
+            pdpt[pdpt_idx].present = 1;
+            pdpt[pdpt_idx].kernel_user = data->kernel_user;
+        }
+        // Create a page directory table entry for a page table if it's not present.
+        pdir = (page_directory_table_entry_t *)(pdpt[pdpt_idx].page_directory_table_address<<12);
+        if(!pdir[pd_idx].present) {
+            pdir[pd_idx].page_table_address = (unsigned int)kalloc_frame()>>12;
+            pdir[pd_idx].present = 1;
+            pdir[pd_idx].kernel_user = data->kernel_user;
+        }
+        ptab = (page_table_entry_t *)(pdir[pd_idx].page_table_address<<12);
+        // Copy the data to the appropriate index in the page table.
+        if(!ptab[pt_idx].present) {
+            data->physical_page_address = kalloc_frame()>>12;
+            memcpy(&ptab[pt_idx], data, sizeof(page_table_entry_t));
+            i++;
+        }
     }
-    pdir = (page_directory_table_entry_t *)(pdpt[pdpt_idx].page_directory_table_address<<12);
-    if(!pdir[pd_idx].present) {
-        pdir[pd_idx].page_table_address = (unsigned int)kalloc_frame()>>12;
-        pdir[pd_idx].present = 1;
-        pdir[pd_idx].kernel_user = data->kernel_user;
-    }
-    ptab = (page_table_entry_t *)(pdir[pd_idx].page_table_address<<12);
-    memcpy(&ptab[pt_idx], data, sizeof(page_table_entry_t));
+    // Re-enable interrupts and paging
+    enablePagingAsm();
+    asmsti();
 }
 
 int addr_to_frameidx(unsigned int addr) {
@@ -301,5 +295,9 @@ void dump_frame_map(void) {
     }
     puts("Used page frames: ");
     screen_print_int(used_frames, 10);
-    puts("\n");
+    puts(" of ");
+    screen_print_int(max_frameidx, 10);
+    puts(", that's about %");
+    screen_print_int(used_frames*100/max_frameidx, 10);
+    puts(".\n");
 }
