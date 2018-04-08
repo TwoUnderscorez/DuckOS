@@ -221,7 +221,7 @@ unsigned int create_pdpt() {
     // Map the kernel space
     temp_pdpt[0].page_directory_table_address = (unsigned int)temp_dt>>12;
     temp_pdpt[0].present = 1;
-    for(int i = 0; i < 3; i++/*temp, will be ++ once vaddrs won't overlap*/) {
+    for(int i = 0; i < 3; i+=2/*temp, will be ++ once vaddrs won't overlap*/) {
         temp_dt[i].present = 1;
         temp_dt[i].ro_rw = 1;
         temp_dt[i].size = 1;

@@ -41,9 +41,7 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	puts("[OK]\n");
 	puts("Initialzing tasking... ");
 	__asm__("int $0x81");
-	puts("[OK]\nRunning other task...\n");
-	// __asm__("int $0x82");
-	puts("Returned to main task!\n");
+	puts("[OK]\nUser task will be run later.\n");
 	dump_frame_map();
 	puts("Initialzing EXT2 filesystem... ");
 	init_ext2fs();
@@ -65,7 +63,9 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	if(elf_check_supported((Elf32_Ehdr_t *)mbuff)) {
 		elf_load_file(mbuff);
 		puts("Running other task...\n");
+		getc();
 		__asm__("int $0x82");
+		puts("Returned to main task!\n");
 	}
 	puts("Press any key to enter free write mode.\n");
 	getc();

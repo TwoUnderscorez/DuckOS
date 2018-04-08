@@ -30,10 +30,8 @@ static void setup_testuserapp(registers_t * regs) {
     data->kernel_user = 1;
     map_vaddr_to_pdpt(t_pdpt, data, 0x300000, 0x300001);
     disablePagingAsm();
-    asmcli();
     memcpy((void *)(data->physical_page_address<<12), &usermain, 0x1000);
     enablePagingAsm();
-    asmsti();
     /* Temporary loading of the user task to the appropriate location
      * in memory. will be removed. 
      */
@@ -49,7 +47,7 @@ void init_tasking(registers_t * regs) {
     mainTask.next = &otherTask;
     set_kernel_stack((unsigned int)regs->kesp);
     // Create the other task
-    // setup_testuserapp(regs);
+    setup_testuserapp(regs);
 }
  
 void create_task(task_t *task, void (*main)(), unsigned int flags, unsigned int pagedir,
@@ -72,6 +70,7 @@ void create_task(task_t *task, void (*main)(), unsigned int flags, unsigned int 
 }
 
 void add_task(task_t * task) {
+    task->next = runningTask->next;
     runningTask->next = task;
 }
  
@@ -84,4 +83,5 @@ void roundRobinNext(registers_t * regs) {
     memcpy(regs, &runningTask->regs, (int)sizeof(registers_t));
     // Set ISR stack
     set_kernel_stack((unsigned int)runningTask->regs.kesp);
+    puts("Cought syscall: RoundRobinNext\n");
 }
