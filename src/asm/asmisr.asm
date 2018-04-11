@@ -1,10 +1,15 @@
 global temp
+extern screen_print_int
+
+; NOTE: All I can only handle one interrupt at a time (for now) because 
+;	    I have one global ISR stack and not ISR stack per task because
+;		I didn't have enough time to debug that.
 
 ; ISR definition for interrupts without an err code
 %macro ISR_NOERRCODE 1
 	global isr%1
 	isr%1:
-		; cli				; disable hardware interrupts
+		cli				; disable hardware interrupts
 		push byte 0		; push 0 as err code
 		push %1			; push int num
 		jmp isr_common_stub
@@ -14,7 +19,7 @@ global temp
 %macro ISR_ERRCODE 1
 	global isr%1
 	isr%1:
-		; cli				; disable hardware interrupts
+		cli				; disable hardware interrupts
 		push %1			; push int num, int errcode was already pushed by the cpu
 		jmp isr_common_stub
 %endmacro
@@ -298,7 +303,7 @@ isr_common_stub:
 	mov gs, ax
 
 	call isr_handler
-
+	
 	xor ebx, ebx
 	pop ebx
 	mov cr3, ebx
@@ -311,5 +316,5 @@ isr_common_stub:
 	popa			; restore registers
 
 	add esp, 8		; pop int num and int err code from the stack
-	; sti				; enable hardware interrupts
+	sti				; enable hardware interrupts
 	iret			; interrupt return

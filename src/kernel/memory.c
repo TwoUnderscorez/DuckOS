@@ -190,6 +190,11 @@ unsigned int kalloc_frame()
     }
     ret = (unsigned int)pre_frame_map[pframe];
     pframe++;
+    // asmcli();
+    disablePagingAsm();
+    memset(ret, '\0', 0x1000);
+    enablePagingAsm();
+    // asmsti();
     return(ret);
 }
 
@@ -209,7 +214,7 @@ unsigned int create_pdpt() {
     task_pdpt = kalloc_frame();
     task_dt = kalloc_frame();
     // We are entering a critical section
-    asmcli();
+    // asmcli();
     // Temporarily disable paging so we can write to the physical
     // addresses of paging tables without problems
     disablePagingAsm();
@@ -221,16 +226,18 @@ unsigned int create_pdpt() {
     // Map the kernel space
     temp_pdpt[0].page_directory_table_address = (unsigned int)temp_dt>>12;
     temp_pdpt[0].present = 1;
-    for(int i = 0; i < 3; i+=2/*temp, will be ++ once vaddrs won't overlap*/) {
+    for(int i = 0; i < 3; i++) {
         temp_dt[i].present = 1;
         temp_dt[i].ro_rw = 1;
         temp_dt[i].size = 1;
         temp_dt[i].page_table_address = (i*0x200000)>>12;
         temp_dt[i].kernel_user = 0;
+        temp_dt[i].always0 = 0;
+        temp_dt[i].available = 0;
     }
     // Re-enable interrupts and paging
     enablePagingAsm();
-    asmsti();
+    // asmsti();
     return task_pdpt;
 }
 
@@ -239,7 +246,7 @@ void map_vaddr_to_pdpt(page_directory_pointer_table_entry_t * pdpt,
                        unsigned int limit)
 {
     // We are entering a critical section
-    asmcli();
+    // asmcli();
     // Temporarily disable paging so we can write to the physical
     // addresses of paging tables without problems
     disablePagingAsm();
@@ -274,7 +281,7 @@ void map_vaddr_to_pdpt(page_directory_pointer_table_entry_t * pdpt,
     }
     // Re-enable interrupts and paging
     enablePagingAsm();
-    asmsti();
+    // asmsti();
 }
 
 int addr_to_frameidx(unsigned int addr) {

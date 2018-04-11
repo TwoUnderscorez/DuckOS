@@ -16,5 +16,6 @@ void create_task(task_t *task, void (*main)(), unsigned int flags, unsigned int 
 void roundRobinNext(registers_t * regs);
 extern void usermain(void);
 void add_task(task_t * task);
+void dump_regs(registers_t * regs);
 
 #endif

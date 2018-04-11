@@ -1,6 +1,7 @@
 #include "isr.h"
 #include "syscall.h"
 #include "../drivers/screen.h"
+#include "../drivers/keyboard.h"
 #include "../drivers/atapio.h"
 
 void isr_handler(registers_t regs)
@@ -21,6 +22,6 @@ void isr_handler(registers_t regs)
 		puts(" ");
 		screen_print_int(regs.err_code, 2);
 		puts("\n");
-		while(1);
+		getc();
 	}
 }

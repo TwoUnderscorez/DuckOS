@@ -2,52 +2,26 @@
 #include "memory.h"
 #include "isr.h"
 #include "descriptors.h"
+#include "heap.h"
 #include "../libs/string.h"
 #include "../drivers/screen.h"
+#include "../drivers/keyboard.h"
 #include "../asm/asmio.h"
 
 // A pointer to the running task in the linked list of tasks
 static task_t *runningTask;
 // Represents the kernel task
 static task_t mainTask;
-static task_t otherTask; // temp
-
- 
-void other_main() {
-    puts("Hello from userland!\n");
-    puts("Trapping back to the kernel...\n");
-    asm volatile("int $0x82");
-}
-
-static void setup_testuserapp(registers_t * regs) {
-    unsigned int t_pdpt = (unsigned int)create_pdpt();
-    // Map user space (0x300000-0x301000)
-    page_table_entry_t * data = malloc(sizeof(page_table_entry_t));
-    memset((void *)data, '\0', sizeof(page_table_entry_t));
-    data->present = 1;
-    // data->physical_page_address = kalloc_frame()>>12;
-    data->ro_rw = 1;
-    data->kernel_user = 1;
-    map_vaddr_to_pdpt(t_pdpt, data, 0x300000, 0x300001);
-    disablePagingAsm();
-    memcpy((void *)(data->physical_page_address<<12), &usermain, 0x1000);
-    enablePagingAsm();
-    /* Temporary loading of the user task to the appropriate location
-     * in memory. will be removed. 
-     */
-    create_task(&otherTask, (void *)0x300000, mainTask.regs.eflags, t_pdpt,
-                0x300100, regs->kesp);
-    otherTask.next = &mainTask;
-    runningTask = &mainTask;
-}
  
 void init_tasking(registers_t * regs) {
     // Create a task for the kernel
+    regs->useresp = regs->kesp;
+    regs->ss = regs->ds;
     memcpy(&mainTask.regs, regs, (int)sizeof(registers_t)); // Save kernel task regs
-    mainTask.next = &otherTask;
+    mainTask.next = &mainTask;
     set_kernel_stack((unsigned int)regs->kesp);
-    // Create the other task
-    setup_testuserapp(regs);
+    // For now the the kernel is the main task (later will be set to terminal)
+    runningTask = &mainTask;
 }
  
 void create_task(task_t *task, void (*main)(), unsigned int flags, unsigned int pagedir,
@@ -65,7 +39,7 @@ void create_task(task_t *task, void (*main)(), unsigned int flags, unsigned int 
     task->regs.eip = (unsigned int) main;
     task->regs.cr3 = (unsigned int) pagedir;
     task->regs.useresp = (unsigned int) user_esp; // Proccess' stack
-    task->regs.kesp = (unsigned int)mainTask.regs.kesp; // ISR's stack
+    task->regs.kesp = (unsigned int)isr_esp; // ISR's stack (Ignored by roundRobinNext, see note in asmisr.asm)
     task->next = 0;
 }
 
@@ -82,6 +56,45 @@ void roundRobinNext(registers_t * regs) {
     // Load runningTask's state
     memcpy(regs, &runningTask->regs, (int)sizeof(registers_t));
     // Set ISR stack
-    set_kernel_stack((unsigned int)runningTask->regs.kesp);
-    puts("Cought syscall: RoundRobinNext\n");
+    // set_kernel_stack((unsigned int)runningTask->regs.kesp);
+}
+
+void dump_regs(registers_t * regs) {
+    puts("usresp: ");
+    screen_print_int(regs->useresp, 16);
+    puts(" isresp: ");
+    screen_print_int(regs->kesp, 16);
+    puts(" cr3: ");
+    screen_print_int(regs->cr3, 16);
+    puts(" cs: ");
+    screen_print_int(regs->cs, 16);
+    puts(" ss: ");
+    screen_print_int(regs->ss, 16);
+    puts(" ds: ");
+    screen_print_int(regs->ds, 16);
+    puts(" eax: ");
+    screen_print_int(regs->eax, 16);
+    puts(" ebp: ");
+    screen_print_int(regs->ebp, 16);
+    puts(" ebx: ");
+    screen_print_int(regs->ebx, 16);
+    puts(" ecx: ");
+    screen_print_int(regs->ecx, 16);
+    puts(" edi: ");
+    screen_print_int(regs->edi, 16);
+    puts(" edx: ");
+    screen_print_int(regs->edx, 16);
+    puts(" eflags: ");
+    screen_print_int(regs->eflags, 16);
+    puts(" eip: ");
+    screen_print_int(regs->eip, 16);
+    puts(" err: ");
+    screen_print_int(regs->err_code, 16);
+    puts(" esi: ");
+    screen_print_int(regs->esi, 16);
+    puts(" int: ");
+    screen_print_int(regs->int_no, 16);
+    puts(" ss: ");
+    screen_print_int(regs->ss, 16);
+    puts("\n");
 }

@@ -2,6 +2,7 @@
 #include "task.h"
 #include "isr.h"
 #include "../drivers/screen.h"
+#include "../drivers/keyboard.h"
 
 void initialise_syscalls() {
     ;

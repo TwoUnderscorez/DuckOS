@@ -41,7 +41,7 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	puts("[OK]\n");
 	puts("Initialzing tasking... ");
 	__asm__("int $0x81");
-	puts("[OK]\nUser task will be run later.\n");
+	puts("[OK]\n");
 	dump_frame_map();
 	puts("Initialzing EXT2 filesystem... ");
 	init_ext2fs();
@@ -61,6 +61,7 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	getc();
 	puts("Parsing ELF...\n");
 	if(elf_check_supported((Elf32_Ehdr_t *)mbuff)) {
+		elf_load_file(mbuff);
 		elf_load_file(mbuff);
 		puts("Running other task...\n");
 		getc();
