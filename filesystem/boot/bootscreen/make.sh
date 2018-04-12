@@ -1,0 +1,2 @@
+gcc -c -Wall -Wno-discarded-qualifiers -Wno-unused-function -Wno-unknown-pragmas -fno-builtin -Wno-char-subscripts -fno-stack-protector -m32 bootscreen.c
+ld -T linker.ld -o bootscreen.quack -m elf_i386 libduck.o bootscreen.o

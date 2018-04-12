@@ -8,14 +8,11 @@ ASMFLAGS:=-f elf
 all: kernel.o boot.o testuserapp.o
 	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o syscall.o testuserapp.o pic.o atapio.o ext2.o elf.o bitmap.o math.o
 
-kernel.o: screen.o keyboard.o asmio.o descriptors.o memory.o heap.o bootscreen.o atapio.o ext2.o
+kernel.o: screen.o keyboard.o asmio.o descriptors.o memory.o heap.o atapio.o ext2.o
 	$(CC) $(CFLAGS) kernel/kernel.c
 
 boot.o: kernel.o
 	$(ASM) $(ASMFLAGS) -o boot.o boot/boot.asm
-
-bootscreen.o:
-	$(CC) $(CFLAGS) boot/bootscreen.c
 
 memory.o: memoryasm.o heap.o bitmap.o
 	$(CC) $(CFLAGS) kernel/memory.c

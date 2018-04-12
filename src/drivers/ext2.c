@@ -92,6 +92,7 @@ void print_fs_info() {
 static EXT2_BLOCK_GROUP_DESCRIPTOR_t * load_block_group_descriptor(int block_group_num) {
     EXT2_BLOCK_GROUP_DESCRIPTOR_t * ext2_gp_desc = malloc(512);
     if(!ext2_gp_desc) puts("null");
+    memset((void *)ext2_gp_desc, '\0', sizeof(512));
     int addr = determine_block_group_addr(block_group_num);
     ata_read_sectors(ext2_block_to_lba(addr), 1, (char *)ext2_gp_desc);
     return ext2_gp_desc;
@@ -115,13 +116,14 @@ EXT2_INODE_t * load_inode(int inode_num) {
     int block_group = determine_inode_block_group(inode_num);
     int index = determine_index_of_inode_in_inode_table(inode_num);
     // alloc enough memory for the inode table
-    EXT2_INODE_t * inode_table = malloc(512*(index/512 + 1));
+    EXT2_INODE_t * inode_table = malloc(512*((index*sizeof(EXT2_INODE_t))/512 + 1));
+    memset((void *)inode_table, '\0', 512*((index*sizeof(EXT2_INODE_t))/512 + 1));
     if(!inode_table) puts("null");
     EXT2_BLOCK_GROUP_DESCRIPTOR_t * blkgp = load_block_group_descriptor(block_group);
     // get the inode table addr from the block group descriptor
     int addr = determine_block_group_addr(block_group) + blkgp->inode_table_addr - 2;
     // read just enough of the inode table
-    ata_read_sectors(ext2_block_to_lba(addr), index/512 + 1, (char *)inode_table);
+    ata_read_sectors(ext2_block_to_lba(addr), (index*sizeof(EXT2_INODE_t))/512 + 1, (char *)inode_table);
     // alloc mem for a single inode
     EXT2_INODE_t * ret_inode = malloc(sizeof(EXT2_INODE_t));
     if(!ret_inode) puts("null");
@@ -139,6 +141,7 @@ static EXT2_DIRECTORY_ENTRY_t * load_directory_structure(int inode_num) {
     EXT2_DIRECTORY_ENTRY_t * dirinfo = malloc(2*inode->size_low);
     //                                        ^ idk why
     if(!dirinfo) puts("null");
+    memset((void *)dirinfo, '\0', 2*inode->size_low);
     int i;
     // read the contents
     for(i = 0; i < inode->size_low/(1024<<ext2_superblock->LOG2_BLOCK_SIZE); i++) {
@@ -185,6 +188,7 @@ void print_filesystem(int inode_num, int tab_count) {
     puts("/\n");
     unsigned char entry_count = 0;
     dirinfo = load_directory_structure(inode_num);
+    char in;
     do {
         inode = load_inode(dirinfo->inode);
         for(int i = 0; i<tab_count; i++) puts("\t");
@@ -194,7 +198,12 @@ void print_filesystem(int inode_num, int tab_count) {
         // if we found a dir print it's contents
         if (( (inode->type_prem & 0xF000) == 0x4000) && entry_count > 1)
         {
-            print_filesystem(dirinfo->inode, tab_count+1);
+            if(getc()==0xa){
+                print_filesystem(dirinfo->inode, tab_count+1);
+            }
+            else{
+                puts("\n");
+            }
         } 
         else{
             puts("\n");

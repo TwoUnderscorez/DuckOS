@@ -194,6 +194,9 @@ unsigned int kalloc_frame()
     disablePagingAsm();
     memset(ret, '\0', 0x1000);
     enablePagingAsm();
+    // puts("kalloced: ");
+    // screen_print_int(ret, 16);
+    // puts(" ");
     // asmsti();
     return(ret);
 }
@@ -255,26 +258,34 @@ void map_vaddr_to_pdpt(page_directory_pointer_table_entry_t * pdpt,
     page_table_entry_t * ptab;
     for(; base <= limit; base+=0x1000) {
         // Find the indices of the vaddr in the pdpt, pd and pt.
+        pdpt_idx = pd_idx = pt_idx = 0;
         pdpt_idx = (base>>29)&0b11;
         pd_idx   = (base>>21)&0b00111111111;
         pt_idx   = (base>>12)&0b00000000000111111111;
+        puts("base: ");
+        screen_print_int(pdpt_idx<<29|pd_idx<<21|pt_idx<<12, 16);
         // Create a page directory pointer table entry for a page directory table if it's not present.
         if(!pdpt[pdpt_idx].present) {
             pdpt[pdpt_idx].page_directory_table_address = (unsigned int)kalloc_frame()>>12;
             pdpt[pdpt_idx].present = 1;
-            pdpt[pdpt_idx].kernel_user = data->kernel_user;
+            pdpt[pdpt_idx].ro_rw = 1;
+            pdpt[pdpt_idx].kernel_user = 1;
         }
         // Create a page directory table entry for a page table if it's not present.
         pdir = (page_directory_table_entry_t *)(pdpt[pdpt_idx].page_directory_table_address<<12);
         if(!pdir[pd_idx].present) {
             pdir[pd_idx].page_table_address = (unsigned int)kalloc_frame()>>12;
             pdir[pd_idx].present = 1;
-            pdir[pd_idx].kernel_user = data->kernel_user;
+            pdir[pd_idx].ro_rw = 1;
+            pdir[pd_idx].kernel_user =1;
         }
         ptab = (page_table_entry_t *)(pdir[pd_idx].page_table_address<<12);
         // Copy the data to the appropriate index in the page table.
         if(!ptab[pt_idx].present) {
             data->physical_page_address = kalloc_frame()>>12;
+            puts(" to ");
+            screen_print_int(data->physical_page_address<<12, 16);
+            puts("\n");
             memcpy(&ptab[pt_idx], data, sizeof(page_table_entry_t));
             i++;
         }

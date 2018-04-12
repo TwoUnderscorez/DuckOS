@@ -8,7 +8,6 @@
 #include "../drivers/screen.h"
 #include "../drivers/keyboard.h"
 #include "../asm/asmio.h"
-#include "../boot/bootscreen.h"
 #include "../drivers/atapio.h"
 #include "../drivers/ext2.h"
 #include "../libs/string.h"
@@ -53,15 +52,15 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	print_filesystem(EXT2_ROOT_DIR_INODE_NUM, 0);
 	puts("OK\n");
 	puts("Loading ELF... ");
-	int * mbuff = malloc(1024);
-	load_file(4035, 0, 0, (void *)mbuff);
+	int * mbuff = malloc(0x14000);
+	screen_print_int(mbuff, 16);
+	load_file(2020, 0, 0, (void *)mbuff);
 	puts("OK\n");
 	getc();
 	hexDump("elffile", mbuff, 256);
 	getc();
 	puts("Parsing ELF...\n");
 	if(elf_check_supported((Elf32_Ehdr_t *)mbuff)) {
-		elf_load_file(mbuff);
 		elf_load_file(mbuff);
 		puts("Running other task...\n");
 		getc();
