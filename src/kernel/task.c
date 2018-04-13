@@ -47,6 +47,13 @@ void add_task(task_t * task) {
     task->next = runningTask->next;
     runningTask->next = task;
 }
+
+void remove_task(task_t * regs) {
+    task_t * prev = runningTask;
+    while(prev->next!=runningTask) prev = prev->next;
+    prev->next = runningTask->next;
+    roundRobinNext(regs);
+}
  
 void roundRobinNext(registers_t * regs) {
     task_t *last = runningTask;
@@ -57,6 +64,7 @@ void roundRobinNext(registers_t * regs) {
     memcpy(regs, &runningTask->regs, (int)sizeof(registers_t));
     // Set ISR stack
     // set_kernel_stack((unsigned int)runningTask->regs.kesp);
+    getc();
 }
 
 void dump_regs(registers_t * regs) {

@@ -174,14 +174,14 @@ static int elf_map_pdpt(Elf32_Ehdr_t *hdr, page_directory_pointer_table_entry_t 
 		data->ro_rw = 1;
 		data->kernel_user = 1;
 		map_vaddr_to_pdpt(pdpt, data, segment->p_vaddr, segment->p_vaddr + segment->p_memsz);
-		disablePagingAsm();
-		memcpy((void *)( (unsigned int)(data->physical_page_address<<12) + (unsigned int)(segment->p_vaddr&0xFFF) ),
+		loadPageDirectoryAsm((unsigned int *)pdpt);
+		memcpy((void *)(segment->p_vaddr),
 			   (void *)( (unsigned int)hdr + (unsigned int)segment->p_offset ), 
 			   segment->p_filesz);
 		// hexDump("seg",
 		// 		(void *)((unsigned int)(data->physical_page_address<<12) + (unsigned int)(segment->p_vaddr&0xFFF)), 
 		// 		segment->p_filesz);
-		enablePagingAsm();
+		load_kernel_pdpt();
 		puts("vaddr: ");
 		screen_print_int(segment->p_vaddr, 16);
 		puts("-");
@@ -274,7 +274,7 @@ static void elf_init_exec(Elf32_Ehdr_t * hdr) {
 	elf_map_pdpt(hdr, pdpt);
 	task_t * elf_task = malloc(sizeof(task_t));
 	memset((void *)elf_task, '\0', sizeof(task_t));	
-	unsigned int usr_esp = 0x600FFF, isr_esp = 0x601FFF;
+	unsigned int usr_esp = 0x600FFF, isr_esp = 0x601FFF, heap_start = 0x700000;
 	page_table_entry_t * data = malloc(sizeof(page_table_entry_t));
 	memset((void *)data, '\0', sizeof(page_table_entry_t));
 	data->present = 1;
@@ -282,6 +282,7 @@ static void elf_init_exec(Elf32_Ehdr_t * hdr) {
 	data->kernel_user = 1;
 	map_vaddr_to_pdpt(pdpt, data, usr_esp-0xFFF, usr_esp);
 	// map_vaddr_to_pdpt(pdpt, data, isr_esp-0x0FFF, isr_esp-1);
+	map_vaddr_to_pdpt(pdpt, data, heap_start, heap_start+2000);
 	puts(">");
 	screen_print_int((void *)hdr->e_entry, 16);
 	puts("<");

@@ -97,6 +97,10 @@ void apply_addr_to_frame_map(unsigned int base, unsigned int limit, unsigned cha
     }
 }
 
+void load_kernel_pdpt() {
+    loadPageDirectoryAsm((unsigned int *)&page_dir_ptr_tab);
+}
+
 void apply_mmap_to_frame_map(void) {
     unsigned int tmp_max_ram;
     multiboot_memory_map_t * mmap_ptr = (multiboot_memory_map_t *)mbd->mmap_addr;
@@ -229,6 +233,8 @@ unsigned int create_pdpt() {
     // Map the kernel space
     temp_pdpt[0].page_directory_table_address = (unsigned int)temp_dt>>12;
     temp_pdpt[0].present = 1;
+    temp_pdpt[0].kernel_user = 1;
+    temp_pdpt[0].ro_rw = 1;
     for(int i = 0; i < 3; i++) {
         temp_dt[i].present = 1;
         temp_dt[i].ro_rw = 1;
@@ -253,17 +259,17 @@ void map_vaddr_to_pdpt(page_directory_pointer_table_entry_t * pdpt,
     // Temporarily disable paging so we can write to the physical
     // addresses of paging tables without problems
     disablePagingAsm();
-    unsigned int pdpt_idx, pd_idx, pt_idx, i = 0;
+    unsigned int pdpt_idx, pd_idx, pt_idx;
     page_directory_table_entry_t * pdir;
     page_table_entry_t * ptab;
     for(; base <= limit; base+=0x1000) {
+        screen_print_int(base, 16);
+        puts(" to ");
         // Find the indices of the vaddr in the pdpt, pd and pt.
         pdpt_idx = pd_idx = pt_idx = 0;
         pdpt_idx = (base>>29)&0b11;
         pd_idx   = (base>>21)&0b00111111111;
         pt_idx   = (base>>12)&0b00000000000111111111;
-        puts("base: ");
-        screen_print_int(pdpt_idx<<29|pd_idx<<21|pt_idx<<12, 16);
         // Create a page directory pointer table entry for a page directory table if it's not present.
         if(!pdpt[pdpt_idx].present) {
             pdpt[pdpt_idx].page_directory_table_address = (unsigned int)kalloc_frame()>>12;
@@ -277,17 +283,15 @@ void map_vaddr_to_pdpt(page_directory_pointer_table_entry_t * pdpt,
             pdir[pd_idx].page_table_address = (unsigned int)kalloc_frame()>>12;
             pdir[pd_idx].present = 1;
             pdir[pd_idx].ro_rw = 1;
-            pdir[pd_idx].kernel_user =1;
+            pdir[pd_idx].kernel_user = 1;
         }
         ptab = (page_table_entry_t *)(pdir[pd_idx].page_table_address<<12);
         // Copy the data to the appropriate index in the page table.
         if(!ptab[pt_idx].present) {
             data->physical_page_address = kalloc_frame()>>12;
-            puts(" to ");
             screen_print_int(data->physical_page_address<<12, 16);
             puts("\n");
             memcpy(&ptab[pt_idx], data, sizeof(page_table_entry_t));
-            i++;
         }
     }
     // Re-enable interrupts and paging

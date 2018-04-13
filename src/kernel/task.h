@@ -8,6 +8,7 @@ void init_tasking(registers_t * regs);
 struct task {
     registers_t regs;
     struct task *next;
+    unsigned int pid;
 };
 
 typedef struct task task_t;
@@ -16,6 +17,7 @@ void create_task(task_t *task, void (*main)(), unsigned int flags, unsigned int 
 void roundRobinNext(registers_t * regs);
 extern void usermain(void);
 void add_task(task_t * task);
+void remove_task(task_t * regs);
 void dump_regs(registers_t * regs);
 
 #endif
