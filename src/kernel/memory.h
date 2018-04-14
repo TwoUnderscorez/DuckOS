@@ -2,6 +2,7 @@
 #define MEMORY_H
 #include "kernel.h"
 #include "multiboot.h"
+#include "isr.h"
 #define MMAP_GET_NUM 0
 #define MMAP_GET_ADDR 1
 #define PAGE_SIZE 4096
@@ -73,4 +74,5 @@ unsigned int frameidx_to_addr(int frameidx);
 void dump_frame_map(void);
 void load_kernel_pdpt();
 void map_vaddr_to_pdpt(page_directory_pointer_table_entry_t * pdpt, page_table_entry_t * data, unsigned int base, unsigned int limit);
+void brk(page_directory_pointer_table_entry_t * pdpt, unsigned int heap_end);
 #endif

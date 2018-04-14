@@ -3,6 +3,7 @@
 #include "isr.h"
 #include "../drivers/screen.h"
 #include "../drivers/keyboard.h"
+#include "memory.h"
 
 void initialise_syscalls() {
     ;
@@ -25,7 +26,7 @@ void handle_syscall(registers_t * regs) {
                     roundRobinNext(regs);
                     break;
                 case 0x03: // Get more heap
-                    roundRobinNext(regs);
+                    brk((page_directory_pointer_table_entry_t *)regs->cr3, (unsigned int)regs->ebx);
                     break;
                 default:
                     return;

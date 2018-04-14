@@ -31,8 +31,9 @@ void main(void) {
         j = 0;
         while(j++<40000000);
     }
-    // char * lur = malloc(sizeof(char));
-    // lur[0] = 'a';
-    // lur[1] = '\0';
-    // puts(lur);
+    char * lur = malloc(0x1500);
+    char * lur2 = lur + 0x1100;
+    lur2[0] = 'a';
+    lur2[1] = '\0';
+    puts(lur2);
 }

@@ -263,13 +263,13 @@ void map_vaddr_to_pdpt(page_directory_pointer_table_entry_t * pdpt,
     page_directory_table_entry_t * pdir;
     page_table_entry_t * ptab;
     for(; base <= limit; base+=0x1000) {
-        screen_print_int(base, 16);
-        puts(" to ");
         // Find the indices of the vaddr in the pdpt, pd and pt.
         pdpt_idx = pd_idx = pt_idx = 0;
         pdpt_idx = (base>>29)&0b11;
         pd_idx   = (base>>21)&0b00111111111;
         pt_idx   = (base>>12)&0b00000000000111111111;
+        screen_print_int((pdpt_idx<<29)|(pd_idx<<21)|(pt_idx<<12), 16);
+        puts(" to ");
         // Create a page directory pointer table entry for a page directory table if it's not present.
         if(!pdpt[pdpt_idx].present) {
             pdpt[pdpt_idx].page_directory_table_address = (unsigned int)kalloc_frame()>>12;
@@ -322,4 +322,14 @@ void dump_frame_map(void) {
     puts(", that's about %");
     screen_print_int(used_frames*100/max_frameidx, 10);
     puts(".\n");
+}
+
+void brk(page_directory_pointer_table_entry_t * pdpt, unsigned int heap_end) {
+    page_table_entry_t * data = malloc(sizeof(page_table_entry_t));
+    memset((void *)data, '\0', sizeof(page_table_entry_t));
+    data->kernel_user = 1;
+    data->present = 1;
+    data->ro_rw = 1;
+    map_vaddr_to_pdpt(pdpt, data, heap_end + 1, heap_end + 2); // another page
+    free(data);
 }

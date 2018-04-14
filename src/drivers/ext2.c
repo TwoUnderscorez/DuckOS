@@ -232,6 +232,10 @@ void load_file(int inode_num, int seek, int skip, void * buff) {
     free(inode);
 }
 
+int path_to_inode(char * path) {
+    
+}
+
 void init_ext2fs() {
     load_superblock(EXT2_SUPERBLOCK_OFFSET);
     verify_superblock();   

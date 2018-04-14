@@ -174,7 +174,7 @@ static int elf_map_pdpt(Elf32_Ehdr_t *hdr, page_directory_pointer_table_entry_t 
 		data->ro_rw = 1;
 		data->kernel_user = 1;
 		map_vaddr_to_pdpt(pdpt, data, segment->p_vaddr, segment->p_vaddr + segment->p_memsz);
-		loadPageDirectoryAsm((unsigned int *)pdpt);
+		loadPageDirectoryAsm((unsigned int *)pdpt); // RISKY!!!
 		memcpy((void *)(segment->p_vaddr),
 			   (void *)( (unsigned int)hdr + (unsigned int)segment->p_offset ), 
 			   segment->p_filesz);
