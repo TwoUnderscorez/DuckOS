@@ -15,6 +15,8 @@ char *strcat(char *dst, char *src);
 char *strncat(char *dst, char *src, unsigned int n);
 unsigned int strcspn(char* str1, char* str2);
 char *strstr(char *str, char *substr);
+char **strsplit(char *string, const char delimiter);
 void hexDump (char *desc, void *addr, int len) ;
+char memcmp(char *data1, char *data2, unsigned int num);
 
 #endif

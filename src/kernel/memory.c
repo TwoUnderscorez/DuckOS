@@ -200,7 +200,7 @@ unsigned int kalloc_frame()
     enablePagingAsm();
     // puts("kalloced: ");
     // screen_print_int(ret, 16);
-    // puts(" ");
+    // puts("\n");
     // asmsti();
     return(ret);
 }
@@ -211,6 +211,9 @@ void kfree_frame(unsigned int page_frame_addr)
     page_frame_addr = (unsigned int)(page_frame_addr); 
     // Divide by 4kb to get the index of the page frame in frame_map
     bitmapReset((unsigned char *)frame_map, ((unsigned int)page_frame_addr)/0x1000);
+    // puts("freed: ");
+    // screen_print_int(page_frame_addr, 16);
+    // puts("\n");
 }
 
 // Create a page directory pointer table for a userland process
@@ -268,8 +271,6 @@ void map_vaddr_to_pdpt(page_directory_pointer_table_entry_t * pdpt,
         pdpt_idx = (base>>29)&0b11;
         pd_idx   = (base>>21)&0b00111111111;
         pt_idx   = (base>>12)&0b00000000000111111111;
-        screen_print_int((pdpt_idx<<29)|(pd_idx<<21)|(pt_idx<<12), 16);
-        puts(" to ");
         // Create a page directory pointer table entry for a page directory table if it's not present.
         if(!pdpt[pdpt_idx].present) {
             pdpt[pdpt_idx].page_directory_table_address = (unsigned int)kalloc_frame()>>12;
@@ -289,8 +290,6 @@ void map_vaddr_to_pdpt(page_directory_pointer_table_entry_t * pdpt,
         // Copy the data to the appropriate index in the page table.
         if(!ptab[pt_idx].present) {
             data->physical_page_address = kalloc_frame()>>12;
-            screen_print_int(data->physical_page_address<<12, 16);
-            puts("\n");
             memcpy(&ptab[pt_idx], data, sizeof(page_table_entry_t));
         }
     }

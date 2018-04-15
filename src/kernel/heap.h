@@ -1,6 +1,7 @@
 #ifndef HEAP_H
 #define HEAP_H
-
+unsigned int heap_start;
+unsigned int heap_end;
 // Every block in the heap will start with this header
 struct memory_block_header {
     char used;

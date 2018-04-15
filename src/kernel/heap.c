@@ -2,8 +2,6 @@
 #include "kernel.h"
 #include "../drivers/screen.h"
 #include "../libs/string.h"
-unsigned int heap_start;
-unsigned int heap_end;
 
 void init_heap(void) {
     heap_start = (unsigned int)&endkernel + 0x1000;

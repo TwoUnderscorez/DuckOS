@@ -183,18 +183,21 @@ static void print_inode_info(int inode_num) {
 }
 
 void print_filesystem(int inode_num, int tab_count) {
-    EXT2_DIRECTORY_ENTRY_t * dirinfo;
+    EXT2_DIRECTORY_ENTRY_t * dirinfo, * dirinfo_bak;
     EXT2_INODE_t * inode;
     puts("/\n");
+    char * item_name_buff = malloc(40);
     unsigned char entry_count = 0;
-    dirinfo = load_directory_structure(inode_num);
+    dirinfo_bak = dirinfo = load_directory_structure(inode_num);
     char in;
     do {
         inode = load_inode(dirinfo->inode);
         for(int i = 0; i<tab_count; i++) puts("\t");
         screen_print_int(dirinfo->inode, 10);
         puts(" ");
-        puts((char *)&dirinfo->name_ptr);
+        memcpy(item_name_buff, &dirinfo->name_ptr, dirinfo->name_len);
+        *(char *)((unsigned int)item_name_buff + dirinfo->name_len) = 0;
+        puts(item_name_buff);
         // if we found a dir print it's contents
         if (( (inode->type_prem & 0xF000) == 0x4000) && entry_count > 1)
         {
@@ -211,8 +214,9 @@ void print_filesystem(int inode_num, int tab_count) {
         dirinfo = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dirinfo + (unsigned int)dirinfo->size); 
         entry_count++;
     } while(dirinfo->size > 8);
-    free((void *)dirinfo);
+    free((void *)dirinfo_bak);
     free((void *)inode);
+    free((void *)item_name_buff);
 }
 
 void load_file(int inode_num, int seek, int skip, void * buff) {
@@ -232,8 +236,50 @@ void load_file(int inode_num, int seek, int skip, void * buff) {
     free(inode);
 }
 
-int path_to_inode(char * path) {
-    
+int path_to_inode(char * partial_path) {
+    char * full_path = malloc(sizeof(char)*(strlen(partial_path)+2));
+    strcpy(full_path, partial_path);
+    strcat(full_path, "/");
+    int inode = 2, i = 1;
+    char ** split_path = strsplit(full_path, '/');
+    EXT2_INODE_t * tmp_inode_ptr;
+    EXT2_DIRECTORY_ENTRY_t * dir, * dir_bak;
+    // EXT2_DIRECTORY_ENTRY_t * tmp_dir = dir;
+    while(split_path[i]) {
+        tmp_inode_ptr = load_inode(inode);
+        if( (tmp_inode_ptr->type_prem & 0xF000) != 0x4000) {
+            puts("break;\n");
+            break; // if we've hit a file, exit
+        }
+        dir_bak = dir = load_directory_structure(inode);
+        // Skip . and ..
+        dir = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dir + (unsigned int)dir->size);
+        do {
+            if(memcmp(split_path[i], (char *)&dir->name_ptr, dir->name_len)) {
+                dir = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dir + (unsigned int)dir->size); 
+                // puts(split_path[i]);
+                // puts(":");
+                // puts(&dir->name_ptr);
+                // puts(">");
+                // screen_print_int(memcmp(split_path[i], (char *)&dir->name_ptr, dir->name_len), 10);
+                // puts(";");
+                // screen_print_int(dir->name_len, 10);
+                // puts("\n");
+                // hexDump("split_path[i]", (void *)split_path[i], dir->name_len);
+                // hexDump("&dir->name_ptr", (void *)&dir->name_ptr, dir->name_len);
+            }
+            else {
+                // puts("dir->inode: ");
+                // screen_print_int(dir->inode, 10);
+                inode = dir->inode;
+                break;
+            }
+        }
+        while(dir->size > 8);
+        free((void *)dir_bak);
+        i++;
+    }
+    return inode;
 }
 
 void init_ext2fs() {

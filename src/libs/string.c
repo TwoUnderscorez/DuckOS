@@ -84,6 +84,17 @@ char strncmp(char *str1, char *str2, unsigned int num) {
 	return *str1 - *str2;
 }
 
+// Compares at most the first num bytes of data1 and data2
+char memcmp(char *data1, char *data2, unsigned int num) {
+	while( *(data1) == *(data2) ){
+		++data1;
+		++data2;
+		if(--num < 1)
+			return 0;
+	}
+	return 1;
+}
+
 // Copies str2 to str1
 void strcpy(char *str1, char *str2){
 	while(*str2 != '\0') *(str1++) = *(str2++);
@@ -160,6 +171,29 @@ char *strstr(char *str, char *substr)
         }
     }
     return '\0';
+}
+
+char **strsplit(char *string, const char delimiter) {
+    int length = 0, count = 0, i = 0, j = 0;
+    while(*(string++)) {
+        if (*string == delimiter) count++;
+        length++;
+    }
+    string -= (length + 1);
+    char **array = (char **)malloc(sizeof(char *) * (length + 1));
+    char ** base = array;
+    for(i = 0; i < (count + 1); i++) {
+        j = 0;
+        while(string[j] != delimiter) j++;
+        j++;
+        *array = (char *)malloc(sizeof(char) * j);
+        memcpy(*array, string, (j-1));
+        (*array)[j-1] = '\0';
+        string += j;
+        array++;
+    }
+    *array = '\0';
+    return base;  
 }
 
 void hexDump (char *desc, void *addr, int len) {

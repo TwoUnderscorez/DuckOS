@@ -1,4 +1,4 @@
-#include "libduck.h"
+#include "../../lib/libduck.h"
 void main(void);
 
 char boot_screen_frames[3][1576] = {
@@ -31,9 +31,4 @@ void main(void) {
         j = 0;
         while(j++<40000000);
     }
-    char * lur = malloc(0x1500);
-    char * lur2 = lur + 0x1100;
-    lur2[0] = 'a';
-    lur2[1] = '\0';
-    puts(lur2);
 }

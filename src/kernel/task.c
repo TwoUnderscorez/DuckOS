@@ -48,10 +48,37 @@ void add_task(task_t * task) {
     runningTask->next = task;
 }
 
-void remove_task(task_t * regs) {
+void free_task_frames(page_directory_pointer_table_entry_t * pdpt) {
+    page_directory_table_entry_t * pdir;
+    page_table_entry_t * ptab;
+    int i, j, k;
+    disablePagingAsm();
+    for(i = 0; i<4; i++) {
+        if(pdpt[i].present) {
+            pdir = (page_directory_table_entry_t *)(pdpt[i].page_directory_table_address<<12);
+            for(j = 0; j < 512; j++) {
+                if(pdir[j].present && !pdir[j].size) {
+                    ptab = (page_table_entry_t *)(pdir[j].page_table_address<<12);
+                    for(k = 0; k < 512; k++) {
+                        if(ptab[k].present) {
+                            kfree_frame(ptab[k].physical_page_address<<12);
+                        }
+                    }
+                    kfree_frame(pdir[j].page_table_address<<12);
+                }
+            }
+            kfree_frame(pdpt[i].page_directory_table_address<<12);
+        }
+    }
+    kfree_frame(pdpt);
+    enablePagingAsm();
+}
+
+void remove_task(registers_t * regs) {
     task_t * prev = runningTask;
     while(prev->next!=runningTask) prev = prev->next;
     prev->next = runningTask->next;
+    free_task_frames((page_directory_pointer_table_entry_t *)regs->cr3);
     roundRobinNext(regs);
 }
  
