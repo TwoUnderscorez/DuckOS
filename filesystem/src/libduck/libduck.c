@@ -1,4 +1,4 @@
-#include "libduck.h"
+#include "../../lib/libduck.h"
 #define HEAP_START  0x700000
 #define HEAP_MAX    0x7FFFFFF
 unsigned int heap_end;
@@ -89,4 +89,18 @@ void *malloc(unsigned int size) {
 void free(void * ptr) {
     memory_block_header_t * heapblk = (memory_block_header_t *)((unsigned int)ptr - sizeof(memory_block_header_t));
     heapblk->used = 0;
+}
+
+char getc() {
+    int c;
+    __asm__("mov $0x01, %eax");
+    __asm__("int $0x84");
+    __asm__("movl %%edx, %0" : "=r"(c));
+    return (char)c;
+}
+
+char * gets(char * buff) {
+    __asm__("mov $0x02, %%eax" :: "b" (buff));
+    __asm__("int $0x84");
+    return buff;
 }

@@ -1,4 +1,5 @@
 #include "keyboard.h"
+#include "screen.h"
 #include "../asm/asmio.h"
 
 //key down only
@@ -59,9 +60,11 @@ char getc(){
 char * gets(char * buff){
     char c;
     c = getc();
+    putc(c);
     while(c!='\n'){
         *(buff++) = c;
         c = getc();
+        putc(c);
     }
     return buff;
 }

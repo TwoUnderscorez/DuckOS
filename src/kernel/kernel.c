@@ -54,7 +54,7 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	puts("Loading ELF... ");
 	int * mbuff = malloc(0x14000);
 	screen_print_int(mbuff, 16);
-	load_file(path_to_inode("/boot/bootscreen.quack"), 0, 0, (void *)mbuff);
+	load_file(path_to_inode("/bin/gets_test"), 0, 0, (void *)mbuff);
 	puts("OK\n");
 	getc();
 	hexDump("elffile", mbuff, 256);

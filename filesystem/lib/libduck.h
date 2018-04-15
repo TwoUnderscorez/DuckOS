@@ -12,4 +12,6 @@ void init_heap(void);
 void extend_heap();
 void *malloc(unsigned int size);
 void free(void * ptr);
+char getc();
+char * gets(char * buff);
 #endif

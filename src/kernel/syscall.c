@@ -47,6 +47,18 @@ void handle_syscall(registers_t * regs) {
                     return;   
             }
             break;
+        case 0x84: // Keyboard                          USERLAND
+            switch(regs->eax) {
+                case 0x01: // Get char
+                    regs->edx = getc();
+                    break;
+                case 0x02: // Get string
+                    gets((char *)regs->ebx);
+                    break;
+                default:
+                    return;   
+            }
+            break;
         default:
             return;
     }
