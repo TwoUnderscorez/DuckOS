@@ -196,7 +196,7 @@ unsigned int kalloc_frame()
     pframe++;
     // asmcli();
     disablePagingAsm();
-    memset(ret, '\0', 0x1000);
+    memset((void *)ret, '\0', 0x1000);
     enablePagingAsm();
     // puts("kalloced: ");
     // screen_print_int(ret, 16);

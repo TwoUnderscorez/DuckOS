@@ -53,7 +53,7 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	puts("OK\n");
 	puts("Loading ELF... ");
 	int * mbuff = malloc(0x14000);
-	screen_print_int(mbuff, 16);
+	screen_print_int((int)mbuff, 16);
 	load_file(path_to_inode("/bin/gets_test"), 0, 0, (void *)mbuff);
 	puts("OK\n");
 	getc();

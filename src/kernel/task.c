@@ -70,7 +70,7 @@ void free_task_frames(page_directory_pointer_table_entry_t * pdpt) {
             kfree_frame(pdpt[i].page_directory_table_address<<12);
         }
     }
-    kfree_frame(pdpt);
+    kfree_frame((unsigned int)pdpt);
     enablePagingAsm();
 }
 
@@ -132,4 +132,8 @@ void dump_regs(registers_t * regs) {
     puts(" ss: ");
     screen_print_int(regs->ss, 16);
     puts("\n");
+}
+
+void execve(char * path, int argc, char ** argv) {
+    ;
 }

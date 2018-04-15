@@ -284,7 +284,7 @@ static void elf_init_exec(Elf32_Ehdr_t * hdr) {
 	// map_vaddr_to_pdpt(pdpt, data, isr_esp-0x0FFF, isr_esp-1);
 	map_vaddr_to_pdpt(pdpt, data, heap_start, heap_start+2000);
 	puts(">");
-	screen_print_int((void *)hdr->e_entry, 16);
+	screen_print_int((int)hdr->e_entry, 16);
 	puts("<");
 	create_task(elf_task, (void *)hdr->e_entry, 0x0, (unsigned int)pdpt, usr_esp, isr_esp);
 	add_task(elf_task);

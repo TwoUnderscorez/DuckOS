@@ -1,5 +1,6 @@
 #include "string.h"
 #include "../drivers/screen.h"
+#include "../kernel/heap.h"
 
 // Int TO Ascii
 char * itoa( int value, char * str, int base )

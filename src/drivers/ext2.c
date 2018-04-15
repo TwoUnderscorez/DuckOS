@@ -4,6 +4,7 @@
 #include "../kernel/heap.h"
 #include "../libs/math.h"
 #include "../libs/string.h"
+#include "../drivers/keyboard.h"
 
 EXT2_SUPERBLOCK_t * ext2_superblock = 0;
 
@@ -189,7 +190,6 @@ void print_filesystem(int inode_num, int tab_count) {
     char * item_name_buff = malloc(40);
     unsigned char entry_count = 0;
     dirinfo_bak = dirinfo = load_directory_structure(inode_num);
-    char in;
     do {
         inode = load_inode(dirinfo->inode);
         for(int i = 0; i<tab_count; i++) puts("\t");
@@ -254,31 +254,24 @@ int path_to_inode(char * partial_path) {
         dir_bak = dir = load_directory_structure(inode);
         // Skip . and ..
         dir = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dir + (unsigned int)dir->size);
+        dir = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dir + (unsigned int)dir->size);
         do {
             if(memcmp(split_path[i], (char *)&dir->name_ptr, dir->name_len)) {
                 dir = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dir + (unsigned int)dir->size); 
-                // puts(split_path[i]);
-                // puts(":");
-                // puts(&dir->name_ptr);
-                // puts(">");
-                // screen_print_int(memcmp(split_path[i], (char *)&dir->name_ptr, dir->name_len), 10);
-                // puts(";");
-                // screen_print_int(dir->name_len, 10);
-                // puts("\n");
-                // hexDump("split_path[i]", (void *)split_path[i], dir->name_len);
-                // hexDump("&dir->name_ptr", (void *)&dir->name_ptr, dir->name_len);
             }
             else {
-                // puts("dir->inode: ");
-                // screen_print_int(dir->inode, 10);
                 inode = dir->inode;
                 break;
             }
         }
         while(dir->size > 8);
         free((void *)dir_bak);
+        free((void *)tmp_inode_ptr);
         i++;
     }
+    i = 0;
+    while(split_path[i]) free((void *)(split_path[i++]));
+    free((void *)split_path);
     return inode;
 }
 
