@@ -20,4 +20,5 @@ void add_task(task_t * task);
 void remove_task(registers_t * regs);
 void dump_regs(registers_t * regs);
 void execve(char * path, int argc, char ** argv);
+void set_next_task_forever();
 #endif

@@ -1,12 +1,14 @@
-global loadPageDirectoryAsm
+global swapPageDirectoryAsm
 global enablePagingAsm
 global enablePaePagingAsm
 global disablePagingAsm
-loadPageDirectoryAsm:
+swapPageDirectoryAsm:
     push    ebp
     mov     ebp, esp
     mov     eax, [esp + 8]
+    mov     ebx, cr3
     mov     cr3, eax
+    mov     eax, ebx
     pop     ebp
     ret
 

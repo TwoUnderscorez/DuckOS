@@ -3,6 +3,8 @@
 #include "isr.h"
 #include "descriptors.h"
 #include "heap.h"
+#include "elf.h"
+#include "../drivers/ext2.h"
 #include "../libs/string.h"
 #include "../drivers/screen.h"
 #include "../drivers/keyboard.h"
@@ -91,7 +93,6 @@ void roundRobinNext(registers_t * regs) {
     memcpy(regs, &runningTask->regs, (int)sizeof(registers_t));
     // Set ISR stack
     // set_kernel_stack((unsigned int)runningTask->regs.kesp);
-    getc();
 }
 
 void dump_regs(registers_t * regs) {
@@ -135,5 +136,17 @@ void dump_regs(registers_t * regs) {
 }
 
 void execve(char * path, int argc, char ** argv) {
-    ;
+    int inode_num = path_to_inode(path);
+    EXT2_INODE_t * inode = load_inode(inode_num);
+    char * file = malloc((1 + inode->sector_usage) * 512);
+    load_file(inode_num, 0, 0, file);
+    if(elf_check_supported((Elf32_Ehdr_t *)file)) {
+		elf_load_file(file, argc, argv);
+	}
+    free((void *)inode);
+    free((void *)file);
+}
+
+void set_next_task_forever() {
+    runningTask->next->next = runningTask->next;
 }

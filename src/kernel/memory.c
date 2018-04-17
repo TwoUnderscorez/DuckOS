@@ -48,7 +48,7 @@ void init_memory(multiboot_info_t * mymbd) {
     // }
     puts("Enabaling PAE paging...\n");
     enablePaePagingAsm(); 
-    loadPageDirectoryAsm((unsigned int *)&page_dir_ptr_tab);
+    swapPageDirectoryAsm((unsigned int *)&page_dir_ptr_tab);
     enablePagingAsm();
     puts("Applying MMAP to the frame map...\n");
     apply_mmap_to_frame_map();
@@ -98,7 +98,7 @@ void apply_addr_to_frame_map(unsigned int base, unsigned int limit, unsigned cha
 }
 
 void load_kernel_pdpt() {
-    loadPageDirectoryAsm((unsigned int *)&page_dir_ptr_tab);
+    swapPageDirectoryAsm((unsigned int *)&page_dir_ptr_tab);
 }
 
 void apply_mmap_to_frame_map(void) {
@@ -324,6 +324,7 @@ void dump_frame_map(void) {
 }
 
 void brk(page_directory_pointer_table_entry_t * pdpt, unsigned int heap_end) {
+    puts("brk\n");
     page_table_entry_t * data = malloc(sizeof(page_table_entry_t));
     memset((void *)data, '\0', sizeof(page_table_entry_t));
     data->kernel_user = 1;

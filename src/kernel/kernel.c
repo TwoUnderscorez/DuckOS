@@ -5,6 +5,7 @@
 #include "heap.h"
 #include "pic.h"
 #include "elf.h"
+#include "task.h"
 #include "../drivers/screen.h"
 #include "../drivers/keyboard.h"
 #include "../asm/asmio.h"
@@ -51,24 +52,17 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	getc();
 	print_filesystem(EXT2_ROOT_DIR_INODE_NUM, 0);
 	puts("OK\n");
-	puts("Loading ELF... ");
-	int * mbuff = malloc(0x14000);
-	screen_print_int((int)mbuff, 16);
-	load_file(path_to_inode("/bin/gets_test"), 0, 0, (void *)mbuff);
-	puts("OK\n");
-	getc();
-	hexDump("elffile", mbuff, 256);
-	getc();
-	puts("Parsing ELF...\n");
-	if(elf_check_supported((Elf32_Ehdr_t *)mbuff)) {
-		elf_load_file(mbuff);
-		// puts("Running other task...\n");
-		// getc();
+	// puts("Loading ELF... ");
+	// while(1) {
+	// 	puts("$ ");
+	// 	char * path = malloc(sizeof(char)*80);
+	// 	gets(path);
+	// 	char ** argv = strsplit(path, ' ');
+		execve("/bin/terminal", 0, 0);
+		set_next_task_forever();
 		__asm__("mov $0x02, %eax");
 		__asm__("int $0x82");
-		// getc();
-		// puts("Returned to main task!\n");
-	}
+	// }
 	puts("Press any key to enter free write mode.\n");
 	getc();
     free_write();

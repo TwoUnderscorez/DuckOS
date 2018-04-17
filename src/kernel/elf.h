@@ -152,6 +152,6 @@ typedef struct {
 // Methods
 int elf_check_file(Elf32_Ehdr_t *hdr);
 int elf_check_supported(Elf32_Ehdr_t *hdr);
-void *elf_load_file(void *file);
+void *elf_load_file(void *file, int argc, char ** argv);
 void *elf_lookup_symbol(const char *name);
 #endif

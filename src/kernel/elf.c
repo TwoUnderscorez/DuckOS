@@ -160,7 +160,7 @@ static int elf_do_reloc(Elf32_Ehdr_t *hdr, Elf32_Rel_t *rel, Elf32_Shdr_t *relta
 
 static int elf_map_pdpt(Elf32_Ehdr_t *hdr, page_directory_pointer_table_entry_t * pdpt) {
 	Elf32_Phdr_t *phdr = elf_pheader(hdr);
-	unsigned int i;
+	unsigned int i, pdpt_bk;
 	page_table_entry_t * data = malloc(sizeof(page_table_entry_t));
 	memset((void *)data, '\0', sizeof(page_table_entry_t));
 	// Iterate over program headers
@@ -174,25 +174,25 @@ static int elf_map_pdpt(Elf32_Ehdr_t *hdr, page_directory_pointer_table_entry_t 
 		data->ro_rw = 1;
 		data->kernel_user = 1;
 		map_vaddr_to_pdpt(pdpt, data, segment->p_vaddr, segment->p_vaddr + segment->p_memsz);
-		loadPageDirectoryAsm((unsigned int *)pdpt); // RISKY!!!
+		pdpt_bk =  swapPageDirectoryAsm((unsigned int *)pdpt);
 		memcpy((void *)(segment->p_vaddr),
 			   (void *)( (unsigned int)hdr + (unsigned int)segment->p_offset ), 
 			   segment->p_filesz);
 		// hexDump("seg",
 		// 		(void *)((unsigned int)(data->physical_page_address<<12) + (unsigned int)(segment->p_vaddr&0xFFF)), 
 		// 		segment->p_filesz);
-		load_kernel_pdpt();
-		puts("vaddr: ");
-		screen_print_int(segment->p_vaddr, 16);
-		puts("-");
-		screen_print_int(segment->p_vaddr + segment->p_memsz, 16);
-		puts(" Size: "); 
-		screen_print_int(segment->p_memsz, 16);
-		puts(" offset: ");
-		screen_print_int(segment->p_vaddr&0xFFF, 16);
-		puts(" at paddr: ");
-		screen_print_int( (unsigned int)(data->physical_page_address<<12) + (unsigned int)(segment->p_vaddr&0xFFF), 16);
-		puts("\n");
+		swapPageDirectoryAsm(pdpt_bk);
+		// puts("vaddr: ");
+		// screen_print_int(segment->p_vaddr, 16);
+		// puts("-");
+		// screen_print_int(segment->p_vaddr + segment->p_memsz, 16);
+		// puts(" Size: "); 
+		// screen_print_int(segment->p_memsz, 16);
+		// puts(" offset: ");
+		// screen_print_int(segment->p_vaddr&0xFFF, 16);
+		// puts(" at paddr: ");
+		// screen_print_int( (unsigned int)(data->physical_page_address<<12) + (unsigned int)(segment->p_vaddr&0xFFF), 16);
+		// puts("\n");
 	}
 	free(data);
 	return 0;
@@ -268,29 +268,51 @@ static int elf_load_stage2(Elf32_Ehdr_t *hdr) {
 // 	return (void *)hdr->e_entry;
 // }
 
-static void elf_init_exec(Elf32_Ehdr_t * hdr) {
+static void elf_init_exec(Elf32_Ehdr_t * hdr, int argc, char ** argv) {
+	// Create pdpt
 	page_directory_pointer_table_entry_t * pdpt;
 	pdpt = (page_directory_pointer_table_entry_t *)create_pdpt();
+	// Map program headers to pdpt
 	elf_map_pdpt(hdr, pdpt);
-	task_t * elf_task = malloc(sizeof(task_t));
-	memset((void *)elf_task, '\0', sizeof(task_t));	
-	unsigned int usr_esp = 0x600FFF, isr_esp = 0x601FFF, heap_start = 0x700000;
+	// Setup the stack and heap
+	unsigned int usr_esp = 0x6FFFFF, heap_start = 0x700000, argv_addr = 0x600000, pdpt_bk, i, len;
 	page_table_entry_t * data = malloc(sizeof(page_table_entry_t));
 	memset((void *)data, '\0', sizeof(page_table_entry_t));
 	data->present = 1;
 	data->ro_rw = 1;
 	data->kernel_user = 1;
 	map_vaddr_to_pdpt(pdpt, data, usr_esp-0xFFF, usr_esp);
-	// map_vaddr_to_pdpt(pdpt, data, isr_esp-0x0FFF, isr_esp-1);
-	map_vaddr_to_pdpt(pdpt, data, heap_start, heap_start+2000);
-	puts(">");
-	screen_print_int((int)hdr->e_entry, 16);
-	puts("<");
-	create_task(elf_task, (void *)hdr->e_entry, 0x0, (unsigned int)pdpt, usr_esp, isr_esp);
+	map_vaddr_to_pdpt(pdpt, data, heap_start, heap_start+1);
+	// Setup the task
+	task_t * elf_task = malloc(sizeof(task_t));
+	memset((void *)elf_task, '\0', sizeof(task_t));	
+	create_task(elf_task, (void *)hdr->e_entry, 0x0, (unsigned int)pdpt, usr_esp, 0);
 	add_task(elf_task);
+	// Setup argc argv
+	void * argv_mem_ptr = malloc(0x1000);
+	char ** argv_ptr = malloc(0x100);
+	for(i = 0; i < argc; i ++) {
+		len = strlen(argv[i])+1;
+		memcpy(argv_mem_ptr, argv[i], len);
+		argv_ptr[i] = argv_mem_ptr;
+		argv_mem_ptr += len + 1;
+	}
+	map_vaddr_to_pdpt(pdpt, data, argv_addr, argv_addr+1);
+	void * argv_mem_ptr2 = argv_addr+0x100;
+	char ** argv_ptr2 = argv_addr;
+	pdpt_bk = swapPageDirectoryAsm(pdpt);
+	for(i = 0; i < argc; i ++) {
+		len = strlen(argv_ptr[i])+1;
+		memcpy(argv_mem_ptr2, argv_ptr[i], len);
+		argv_ptr2[i] = argv_mem_ptr2;
+		argv_mem_ptr2 += len + 1;
+	}
+	swapPageDirectoryAsm(pdpt_bk);
+	elf_task->regs.ebx = argc;
+	elf_task->regs.ecx = argv_ptr2;
 } 
  
-void *elf_load_file(void *file) {
+void *elf_load_file(void *file, int argc, char ** argv) {
 	Elf32_Ehdr_t *hdr = (Elf32_Ehdr_t *)file;
 	if(!elf_check_supported(hdr)) {
 		puts("ELF File cannot be loaded.\n");
@@ -298,11 +320,10 @@ void *elf_load_file(void *file) {
 	}
 	switch(hdr->e_type) {
 		case ET_EXEC:
-			puts("ET_EXEC\n");
-			elf_init_exec(hdr);
+			elf_init_exec(hdr, argc, argv);
 			return 0;
 		case ET_REL:
-            puts("ET_REL\n");
+            puts("ET_REL - Unsupported\n");
 			return 0;
 	}
 	return 0;

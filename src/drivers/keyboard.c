@@ -66,6 +66,7 @@ char * gets(char * buff){
         c = getc();
         putc(c);
     }
+    *(buff++) = '\0';
     return buff;
 }
 

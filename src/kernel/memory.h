@@ -58,7 +58,7 @@ struct page_table_entry {
 
 typedef struct page_table_entry page_table_entry_t;
 
-extern void loadPageDirectoryAsm(unsigned int * ptr);
+extern unsigned int swapPageDirectoryAsm(unsigned int * ptr);
 extern void enablePagingAsm(void);
 extern void enablePaePagingAsm(void);
 extern void disablePagingAsm(void);

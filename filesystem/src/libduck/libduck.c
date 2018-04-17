@@ -2,6 +2,9 @@
 #define HEAP_START  0x700000
 #define HEAP_MAX    0x7FFFFFF
 unsigned int heap_end;
+char ** argv;
+int argc;
+extern void main(int argc, char ** argv);
 
 struct memory_block_header {
     char used;
@@ -12,13 +15,15 @@ struct memory_block_header {
 typedef struct memory_block_header memory_block_header_t;
 
 void init_libduck(void){
+    __asm__("movl %%ebx, %0" : "=r"(argc));
+    __asm__("movl %%ecx, %0" : "=r"(argv));
     init_heap();
 }
 
 
 void _start(void) {
     init_libduck();
-    main();
+    main(argc, argv);
     _exit();
 }
 
@@ -34,6 +39,11 @@ void task_yield() {
 
 void screen_clear() {
     __asm__("mov $0x03, %eax");
+    __asm__("int $0x83");
+}
+
+void putc(char c) {
+    __asm__("mov $0x01, %%eax" :: "b" (c));
     __asm__("int $0x83");
 }
 
@@ -56,6 +66,7 @@ void extend_heap() {
     heap_end+=0x1000;
 }
 
+
 void *malloc(unsigned int size) {
     memory_block_header_t * ptr = (memory_block_header_t *)HEAP_START;
     void * retaddr;
@@ -64,17 +75,14 @@ void *malloc(unsigned int size) {
         ptr = ptr->next;
     }
     while((unsigned int)((unsigned int)(ptr) + size) > (heap_end)) {extend_heap();}
-    // int * lur1 = 0x701F01;
-    // *lur1 = 35;
-    // while(1);
     if(ptr->length == -1) {
         ptr->length = size;
         ptr->used = 1;
-        ptr->next = (memory_block_header_t *)((unsigned int)ptr + size);
-        __asm__("nop" :: "b" (ptr->next));
-        ptr->next->length = -1;
+        ptr->next = (memory_block_header_t *)((unsigned int)ptr + (unsigned int)size); 
+        if(getc() == 'q') __asm__("int $0x03" :: "a" (ptr->next));
         ptr->next->used = 0;
         ptr->next->next = 0;
+        ptr->next->length = -1;
     }
     else { 
         ptr->used = 1;
@@ -103,4 +111,15 @@ char * gets(char * buff) {
     __asm__("mov $0x02, %%eax" :: "b" (buff));
     __asm__("int $0x84");
     return buff;
+}
+
+void execve(char * path, int argc_l, char ** argv_l, int yield) {
+    __asm__("nop" :: "b" (path) );
+    __asm__("nop" :: "c" (argv_l) );
+    __asm__("nop" :: "d" (argc_l) );
+    __asm__("int $0x82" :: "a" (4));
+    if(yield) {
+        __asm__("mov $0x02, %eax");
+        __asm__("int $0x82");
+    }
 }

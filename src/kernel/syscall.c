@@ -29,7 +29,7 @@ void handle_syscall(registers_t * regs) {
                     brk((page_directory_pointer_table_entry_t *)regs->cr3, (unsigned int)regs->ebx);
                     break;
                 case 0x04: // execve
-                    execve((char *)regs->ebx, (int)regs->ecx, (char **)regs->edx);
+                    execve((char *)regs->ebx, (int)regs->edx, (char **)regs->ecx);
                     break;
                 default:
                     return;
