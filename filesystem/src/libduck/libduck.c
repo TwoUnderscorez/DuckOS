@@ -5,6 +5,7 @@ unsigned int heap_end;
 char ** argv;
 int argc;
 extern void main(int argc, char ** argv);
+char * itoa( int value, char * str, int base );
 
 struct memory_block_header {
     char used;
@@ -68,26 +69,25 @@ void extend_heap() {
 
 
 void *malloc(unsigned int size) {
-    memory_block_header_t * ptr = (memory_block_header_t *)HEAP_START;
+    memory_block_header_t * ptr = (memory_block_header_t *)0x700000;
     void * retaddr;
     // First fit algorithm
     while((ptr != 0) && (ptr->used || ptr->length < size ) ){
         ptr = ptr->next;
     }
-    while((unsigned int)((unsigned int)(ptr) + size) > (heap_end)) {extend_heap();}
+    while( ptr + size > heap_end ) extend_heap();
     if(ptr->length == -1) {
         ptr->length = size;
         ptr->used = 1;
-        ptr->next = (memory_block_header_t *)((unsigned int)ptr + (unsigned int)size); 
-        if(getc() == 'q') __asm__("int $0x03" :: "a" (ptr->next));
+        ptr->next = (ptr + size); 
+        ptr->next->length = -1;
         ptr->next->used = 0;
         ptr->next->next = 0;
-        ptr->next->length = -1;
     }
     else { 
         ptr->used = 1;
     }
-    if((unsigned int)ptr > HEAP_MAX)
+    if((unsigned int)ptr > heap_end)
         return 0;
     retaddr = (void *)((unsigned int)ptr + sizeof(memory_block_header_t));
     // memset(retaddr, 0, size);
@@ -122,4 +122,42 @@ void execve(char * path, int argc_l, char ** argv_l, int yield) {
         __asm__("mov $0x02, %eax");
         __asm__("int $0x82");
     }
+}
+
+char * itoa( int value, char * str, int base )
+{
+	char * rc;
+	char * ptr;
+	char * low;
+	// Check for supported base.
+	if ( base < 2 || base > 36 )
+	{
+		*str = '\0';
+		return str;
+	}
+	rc = ptr = str;
+	// Set '-' for negative decimals.
+	if ( value < 0 && base == 10 )
+	{
+		*ptr++ = '-';
+	}
+	// Remember where the numbers start.
+	low = ptr;
+	// The actual conversion.
+	do
+	{
+	// Modulo is negative for negative value. This trick makes abs() unnecessary.
+		*ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz"[35 + value % base];
+		value /= base;
+	} while ( value );
+	// Terminating the string.
+		*ptr-- = '\0';
+	// Invert the numbers.
+	while ( low < ptr )
+	{
+		char tmp = *low;
+		*low++ = *ptr;
+		*ptr-- = tmp;
+	}
+	return rc;
 }
