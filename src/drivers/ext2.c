@@ -248,7 +248,6 @@ int path_to_inode(char * partial_path) {
     while(split_path[i]) {
         tmp_inode_ptr = load_inode(inode);
         if( (tmp_inode_ptr->type_prem & 0xF000) != 0x4000) {
-            puts("break;\n");
             break; // if we've hit a file, exit
         }
         dir_bak = dir = load_directory_structure(inode);

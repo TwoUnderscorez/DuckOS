@@ -69,28 +69,33 @@ void extend_heap() {
 
 
 void *malloc(unsigned int size) {
-    memory_block_header_t * ptr = (memory_block_header_t *)0x700000;
-    void * retaddr;
+    memory_block_header_t * mblkptr = (memory_block_header_t *)0x700000;
+    void * retaddr, * nextptr;
     // First fit algorithm
-    while((ptr != 0) && (ptr->used || ptr->length < size ) ){
-        ptr = ptr->next;
+    while((mblkptr != 0) && (mblkptr->used || mblkptr->length < size ) ){
+        mblkptr = mblkptr->next;
     }
-    while( ptr + size > heap_end ) extend_heap();
-    if(ptr->length == -1) {
-        ptr->length = size;
-        ptr->used = 1;
-        ptr->next = (ptr + size); 
-        ptr->next->length = -1;
-        ptr->next->used = 0;
-        ptr->next->next = 0;
+    nextptr = (unsigned int)mblkptr + size;
+    // ptrptr = ((unsigned int)ptr + (unsigned int)size);
+    if(mblkptr->length == -1) {
+        mblkptr->length = size;
+        mblkptr->used = 1;
+        mblkptr->next = nextptr; 
+        while( nextptr > heap_end ) extend_heap();
+        mblkptr->next->length = -1;
+        mblkptr->next->used = 0;
+        mblkptr->next->next = 0;
     }
     else { 
-        ptr->used = 1;
+        mblkptr->used = 1;
     }
-    if((unsigned int)ptr > heap_end)
+    if((unsigned int)mblkptr > heap_end)
         return 0;
-    retaddr = (void *)((unsigned int)ptr + sizeof(memory_block_header_t));
+    retaddr = (void *)((unsigned int)mblkptr + sizeof(memory_block_header_t));
     // memset(retaddr, 0, size);
+    char buf[10];
+    itoa(mblkptr->next, buf, 16);
+    puts(buf);
     return retaddr;
 }
 
