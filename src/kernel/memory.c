@@ -324,7 +324,6 @@ void dump_frame_map(void) {
 }
 
 void brk(page_directory_pointer_table_entry_t * pdpt, unsigned int heap_end) {
-    puts("brk\n");
     page_table_entry_t * data = malloc(sizeof(page_table_entry_t));
     memset((void *)data, '\0', sizeof(page_table_entry_t));
     data->kernel_user = 1;

@@ -22,7 +22,7 @@ void *malloc(unsigned int size) {
     if(ptr->length == -1) {
         ptr->length = size;
         ptr->used = 1;
-        ptr->next = ptr + size; 
+        ptr->next = ptr + size + sizeof(memory_block_header_t); 
         ptr->next->length = -1;
         ptr->next->used = 0;
         ptr->next->next = 0;

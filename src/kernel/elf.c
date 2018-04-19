@@ -181,7 +181,7 @@ static int elf_map_pdpt(Elf32_Ehdr_t *hdr, page_directory_pointer_table_entry_t 
 		// hexDump("seg",
 		// 		(void *)((unsigned int)(data->physical_page_address<<12) + (unsigned int)(segment->p_vaddr&0xFFF)), 
 		// 		segment->p_filesz);
-		swapPageDirectoryAsm(pdpt_bk);
+		swapPageDirectoryAsm((unsigned int *)pdpt_bk);
 		// puts("vaddr: ");
 		// screen_print_int(segment->p_vaddr, 16);
 		// puts("-");
@@ -298,18 +298,18 @@ static void elf_init_exec(Elf32_Ehdr_t * hdr, int argc, char ** argv) {
 		argv_mem_ptr += len + 1;
 	}
 	map_vaddr_to_pdpt(pdpt, data, argv_addr, argv_addr+1);
-	void * argv_mem_ptr2 = argv_addr+0x100;
-	char ** argv_ptr2 = argv_addr;
-	pdpt_bk = swapPageDirectoryAsm(pdpt);
+	void * argv_mem_ptr2 = (void *)argv_addr+0x100;
+	char ** argv_ptr2 = (char **)argv_addr;
+	pdpt_bk = swapPageDirectoryAsm((unsigned int *)pdpt);
 	for(i = 0; i < argc; i ++) {
 		len = strlen(argv_ptr[i])+1;
 		memcpy(argv_mem_ptr2, argv_ptr[i], len);
 		argv_ptr2[i] = argv_mem_ptr2;
 		argv_mem_ptr2 += len + 1;
 	}
-	swapPageDirectoryAsm(pdpt_bk);
+	swapPageDirectoryAsm((unsigned int *)pdpt_bk);
 	elf_task->regs.ebx = argc;
-	elf_task->regs.ecx = argv_ptr2;
+	elf_task->regs.ecx = (unsigned int)argv_ptr2;
 } 
  
 void *elf_load_file(void *file, int argc, char ** argv) {
