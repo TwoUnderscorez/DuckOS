@@ -83,12 +83,12 @@ void isr_handler(registers_t regs)
 				puts("0x");
 				screen_print_int(regs.int_no, 16);			
 		}
-		puts(" with error code of 0x");
+		puts(" with an error code of 0x");
 		screen_print_int(regs.err_code, 16);
 		puts("\n");
 		if(regs.cs == 0x1B && regs.useresp > 0x60000) {
-			puts("Task terminated.\n");
 			remove_task(&regs);
+			puts("Task terminated.\n");
 		}
 		else {
 			puts("[KERNEL PANIC] System halted :(");

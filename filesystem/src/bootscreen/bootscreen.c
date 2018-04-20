@@ -8,7 +8,7 @@ void main(void) {
     memcpy(path, "/boot/bootscreen/frames/frame", 29);
     path[30] = '\0';
     unsigned int i, j;
-    for(i = 0; i < 9; i++) {
+    for(i = 0; i < 10; i++) {
         screen_clear();
         itoa(i, &itoar_buff, 10);
         path[29] = itoar_buff[0];
@@ -16,7 +16,6 @@ void main(void) {
         file_buff[1575] = '\0';
         puts(file_buff);
         j = 0;
-        // puts(path);
         while(j++<30000000);
     }
     for(; i < 20; i++) {
