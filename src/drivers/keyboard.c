@@ -1,11 +1,12 @@
 #include "keyboard.h"
 #include "screen.h"
+#include "../libs/string.h"
 #include "../asm/asmio.h"
 
 //key down only
 char scanducks[181] =
 {
-  0,0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b' /* <- Backspace */,
+  0,0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 8 /* <- Backspace */,
   '\t' /* <- Tab */, 'q', 'w', 'e', 'r',  't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n' /* <- Enter key */,
    0,			/* 29   - Control */
   'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', 0 /*<- Left shift */,
@@ -59,11 +60,18 @@ char getc(){
 
 char * gets(char * buff){
     char c;
+    char * bk_buf = buff;
     c = getc();
     putc(c);
+    *(buff++) = c;
     while(c!='\n'){
-        *(buff++) = c;
         c = getc();
+        if(c == 0x08) {
+            buff--;
+        }
+        else {
+            *(buff++) = c;
+        }
         putc(c);
     }
     *(buff++) = '\0';

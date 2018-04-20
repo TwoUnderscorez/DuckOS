@@ -17,7 +17,7 @@ void main(void) {
         puts(file_buff);
         j = 0;
         // puts(path);
-        while(j++<80000000);
+        while(j++<30000000);
     }
     for(; i < 20; i++) {
         screen_clear();
@@ -27,7 +27,7 @@ void main(void) {
         file_buff[1575] = '\0';
         puts(file_buff);
         j = 0;
-        while(j++<80000000);
+        while(j++<30000000);
     }
     getc();
     screen_clear();
