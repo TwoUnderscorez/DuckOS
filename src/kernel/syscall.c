@@ -3,6 +3,7 @@
 #include "isr.h"
 #include "../drivers/screen.h"
 #include "../drivers/keyboard.h"
+#include "../drivers/ext2.h"
 #include "memory.h"
 
 void initialise_syscalls() {
@@ -60,6 +61,23 @@ void handle_syscall(registers_t * regs) {
                     break;
                 default:
                     return;   
+            }
+            break;
+        case 0x85: // EXT2 Filesystem                    USERLAND
+            switch(regs->eax) {
+                case 0x01: // Load inode structure
+                    load_inode(regs->ebx, (void *)regs->ecx);
+                    break;
+                case 0x02: // Load directory structure
+                    load_directory_structure(regs->ebx, (void *)regs->ecx);
+                    break;
+                case 0x03: // Load file
+                    load_file(regs->ebx, regs->ecx, regs->edx, (void *)regs->edi);
+                    break;
+                case 0x04: // Convert a path to inode num
+                    regs->edx = path_to_inode((char *)regs->ebx);
+                default:
+                    return;
             }
             break;
         default:

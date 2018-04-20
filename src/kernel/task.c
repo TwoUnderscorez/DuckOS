@@ -137,7 +137,8 @@ void dump_regs(registers_t * regs) {
 
 void execve(char * path, int argc, char ** argv) {
     int inode_num = path_to_inode(path);
-    EXT2_INODE_t * inode = load_inode(inode_num);
+    EXT2_INODE_t * inode = malloc(sizeof(EXT2_INODE_t));
+    load_inode(inode_num, inode);
     char * file = malloc((1 + inode->sector_usage) * 512);
     load_file(inode_num, 0, 0, file);
     if(elf_check_supported((Elf32_Ehdr_t *)file)) {

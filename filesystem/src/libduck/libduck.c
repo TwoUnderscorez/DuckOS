@@ -160,3 +160,34 @@ char * itoa( int value, char * str, int base )
 	}
 	return rc;
 }
+
+void load_inode(int inode_num, void * buf) {
+    __asm__("nop" :: "b" (inode_num) );
+    __asm__("nop" :: "c" (buf) );
+    __asm__("int $0x85" :: "a" (0x01));
+}
+
+void load_directory_structure(int inode_num, void * buf) {
+    __asm__("nop" :: "b" (inode_num) );
+    __asm__("nop" :: "c" (buf) );
+    __asm__("int $0x85" :: "a" (0x02));
+}
+
+void __attribute__((optimize("O0"))) load_file(int inode_num, int seek, int skip, void *buff) {
+    int out;
+    __asm__("nop" :: "b" (inode_num) );
+    __asm__("nop" :: "c" (seek) );
+    __asm__("nop" :: "d" (skip) );
+    __asm__("movl %1, %%edi\n\t"
+    : "=r" (out) 
+    : "r" (buff));
+    __asm__("int $0x85" :: "a" (0x03));
+}
+
+int __attribute__((optimize("O0"))) path_to_inode(char * path) {
+    int inode;
+    __asm__("nop" :: "b" (path) );
+    __asm__("int $0x85" :: "a" (0x04));
+    __asm__("movl %%edx, %0" : "=r"(inode));
+    return inode;
+}

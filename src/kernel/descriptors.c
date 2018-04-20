@@ -186,7 +186,7 @@ void idt_setup() {
 	idt_set_gate(130,(unsigned int)isr130,0x08,0xef); // Tasking
 	idt_set_gate(131,(unsigned int)isr131,0x08,0xef); // Screen
 	idt_set_gate(132,(unsigned int)isr132,0x08,0xef); // Keyboard
-	idt_set_gate(133,(unsigned int)isr133,0x08,0x8e);
+	idt_set_gate(133,(unsigned int)isr133,0x08,0xef); // Filesystem
 	idt_set_gate(134,(unsigned int)isr134,0x08,0x8e);
 	idt_set_gate(135,(unsigned int)isr135,0x08,0x8e);
 	idt_set_gate(136,(unsigned int)isr136,0x08,0x8e);
