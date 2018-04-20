@@ -52,22 +52,15 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	getc();
 	print_filesystem(EXT2_ROOT_DIR_INODE_NUM, 0);
 	puts("OK\n");
-	screen_print_int(path_to_inode("/boot/bootscreen/frames/frame18"), 10);
+	screen_print_int(strlen("asdf"), 10);
 	getc();
-	// puts("Loading ELF... ");
-	// while(1) {
-	// 	puts("$ ");
-	// 	char * path = malloc(sizeof(char)*80);
-	// 	gets(path);
-	// 	char ** argv = strsplit(path, ' ');
-		execve("/boot/bootscreen.quack", 0, 0);
-		__asm__("mov $0x02, %eax");
-		__asm__("int $0x82");
-		execve("/bin/terminal", 0, 0);
-		set_next_task_forever();
-		__asm__("mov $0x02, %eax");
-		__asm__("int $0x82");
-	// }
+	execve("/boot/bootscreen.quack", 0, 0);
+	__asm__("mov $0x02, %eax");
+	__asm__("int $0x82");
+	execve("/bin/terminal", 0, 0);
+	set_next_task_forever();
+	__asm__("mov $0x02, %eax");
+	__asm__("int $0x82");
 	puts("Press any key to enter free write mode.\n");
 	getc();
     free_write();

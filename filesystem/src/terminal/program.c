@@ -6,20 +6,16 @@ int strptrlen(char ** strptr);
 void main(int argc, char ** argv) {
     char * input = malloc(80);
     char ** app_argv;
+    int input_len = 0;
     while(1) {
 		puts("\n$ ");
 		gets(input);
+        input_len = strlen(input);
+        if(input[input_len-1] != ' ') {
+            input[input_len-1] = ' ';
+            input[input_len] = '\0';
+        }
         app_argv = mystrsplit(input, ' ');
-        // __asm__("int $0x03" :: "a" (app_argv) );
-        // app_argv = (char **)0x7002d9;//70038d;
-        // puts(app_argv[0]);
-        // app_argv = malloc(sizeof(char *) * 3);
-        // app_argv[0] = malloc(sizeof(char)*5);
-        // app_argv[1] = malloc(sizeof(char)*5);
-        // app_argv[2] = 0;
-        // memcpy(app_argv[1], "arg2", 5);
-        // memcpy(app_argv[0], "arg1", 5);
-        // puts("\n");
 		execve(app_argv[0], strptrlen(app_argv), app_argv, 1);
 	}
 }

@@ -198,3 +198,10 @@ void *memcpy(void *dst, void *src, int count) {
 	while(count--) *(char *)dst++ = *(char *)src++;
 	return temp_dst;
 }
+
+// Returns length of string
+unsigned int strlen(char *str){
+	int length = 0;
+	while(*str++) ++length;
+	return length;
+}
