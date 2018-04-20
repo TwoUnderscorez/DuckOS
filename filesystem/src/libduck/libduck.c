@@ -191,3 +191,10 @@ int __attribute__((optimize("O0"))) path_to_inode(char * path) {
     __asm__("movl %%edx, %0" : "=r"(inode));
     return inode;
 }
+
+// Copies n characters from memory area str2 to memory area str1
+void *memcpy(void *dst, void *src, int count) {
+	void *temp_dst = dst;
+	while(count--) *(char *)dst++ = *(char *)src++;
+	return temp_dst;
+}

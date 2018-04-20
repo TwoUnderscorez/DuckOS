@@ -2,11 +2,9 @@
 void main(int argc, char ** argv);
 char **mystrsplit(char *string, char delimiter);
 int strptrlen(char ** strptr);
-void *memcpy(void *dst, void *src, int count);
 
 void main(int argc, char ** argv) {
     char * input = malloc(80);
-    getc();
     char ** app_argv;
     while(1) {
 		puts("\n$ ");
@@ -53,10 +51,4 @@ int strptrlen(char ** strptr) {
     int len = 0;
     while(strptr[len++]);
     return len - 1;
-}
-
-void *memcpy(void *dst, void *src, int count){
-	void *temp_dst = dst;
-	while(count--) *(char *)dst++ = *(char *)src++;
-	return temp_dst;
 }
