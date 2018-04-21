@@ -1,4 +1,5 @@
 #include "../../lib/libduck.h"
+#include "../../lib/string.h"
 void main(int argc, char ** argv);
 char **mystrsplit(char *string, char delimiter);
 int strptrlen(char ** strptr);
@@ -16,7 +17,12 @@ void main(int argc, char ** argv) {
             input[input_len] = '\0';
         }
         app_argv = mystrsplit(input, ' ');
-		execve(app_argv[0], strptrlen(app_argv), app_argv, 1);
+        if(!path_exists(app_argv[0])) {
+            execve(app_argv[0], strptrlen(app_argv), app_argv, 1);
+        }
+        else {
+            puts("command not found.\n");
+        }
 	}
 }
 

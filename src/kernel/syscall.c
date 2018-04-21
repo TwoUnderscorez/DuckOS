@@ -11,6 +11,7 @@ void initialise_syscalls() {
 }
 
 void handle_syscall(registers_t * regs) {
+    int a;
     switch(regs->int_no) {
         case 0x80: // Interrupt test                    KMODE
             puts("Recieved interrupt: 0x80. Interrupts seem to be functioning properly.\n");
@@ -79,6 +80,19 @@ void handle_syscall(registers_t * regs) {
                     break;
                 case 0x04: // Convert a path to inode num
                     regs->edx = path_to_inode((char *)regs->ebx);
+                    if((int)regs->edx < 0) 
+                    {
+                        remove_task(regs);
+                        puts("Path not found: ");
+                        puts((char *)regs->ebx);
+                        puts("\nTask terminated.\n");
+                    }
+                    break;
+                case 0x05: // does a path exist
+                    a = (int)path_to_inode((char *)regs->ebx);
+                    if(a == -1) regs->edx = 1;
+                    else regs->edx = 0;
+                    break;
                 default:
                     return;
             }

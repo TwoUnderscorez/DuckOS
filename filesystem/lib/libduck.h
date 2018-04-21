@@ -54,4 +54,5 @@ void load_inode(int inode_num, void * buf) ;
 void load_directory_structure(int inode_num, void * buf);
 void load_file(int inode_num, int seek, int skip, void *buff) ;
 int path_to_inode(char * path);
+int path_exists(char * path);
 #endif

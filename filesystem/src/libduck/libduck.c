@@ -154,3 +154,11 @@ int __attribute__((optimize("O0"))) path_to_inode(char * path) {
     __asm__("movl %%edx, %0" : "=r"(inode));
     return inode;
 }
+
+int __attribute__((optimize("O0"))) path_exists(char * path) {
+    int inode;
+    __asm__("nop" :: "b" (path) );
+    __asm__("int $0x85" :: "a" (0x05));
+    __asm__("movl %%edx, %0" : "=r"(inode));
+    return inode;
+}
