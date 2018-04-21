@@ -54,7 +54,4 @@ void load_inode(int inode_num, void * buf) ;
 void load_directory_structure(int inode_num, void * buf);
 void load_file(int inode_num, int seek, int skip, void *buff) ;
 int path_to_inode(char * path);
-char * itoa( int value, char * str, int base );
-void *memcpy(void *dst, void *src, int count);
-unsigned int strlen(char *str);
 #endif

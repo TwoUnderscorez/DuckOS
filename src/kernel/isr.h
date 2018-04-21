@@ -13,5 +13,6 @@ struct registers
 typedef struct registers registers_t;
 
 void isr_handler(registers_t regs);
+void dump_regs(registers_t * regs);
 
 #endif

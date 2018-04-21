@@ -48,11 +48,6 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	puts("[OK]\n");
 	puts("Found ext2 filesystem!\n");
     print_fs_info(); 
-	puts("Printing filesystem recursively...\n");
-	getc();
-	print_filesystem(EXT2_ROOT_DIR_INODE_NUM, 0);
-	puts("OK\n");
-	screen_print_int(strlen("asdf"), 10);
 	getc();
 	execve("/boot/bootscreen.quack", 0, 0);
 	__asm__("mov $0x02, %eax");

@@ -1,4 +1,5 @@
 #include "../../lib/libduck.h"
+#include "../../lib/string.h"
 #define HEAP_START  0x700000
 #define HEAP_MAX    0x7FFFFFF
 unsigned int heap_end;
@@ -123,44 +124,6 @@ void execve(char * path, int argc_l, char ** argv_l, int yield) {
     }
 }
 
-char * itoa( int value, char * str, int base )
-{
-	char * rc;
-	char * ptr;
-	char * low;
-	// Check for supported base.
-	if ( base < 2 || base > 36 )
-	{
-		*str = '\0';
-		return str;
-	}
-	rc = ptr = str;
-	// Set '-' for negative decimals.
-	if ( value < 0 && base == 10 )
-	{
-		*ptr++ = '-';
-	}
-	// Remember where the numbers start.
-	low = ptr;
-	// The actual conversion.
-	do
-	{
-	// Modulo is negative for negative value. This trick makes abs() unnecessary.
-		*ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz"[35 + value % base];
-		value /= base;
-	} while ( value );
-	// Terminating the string.
-		*ptr-- = '\0';
-	// Invert the numbers.
-	while ( low < ptr )
-	{
-		char tmp = *low;
-		*low++ = *ptr;
-		*ptr-- = tmp;
-	}
-	return rc;
-}
-
 void load_inode(int inode_num, void * buf) {
     __asm__("nop" :: "b" (inode_num) );
     __asm__("nop" :: "c" (buf) );
@@ -190,18 +153,4 @@ int __attribute__((optimize("O0"))) path_to_inode(char * path) {
     __asm__("int $0x85" :: "a" (0x04));
     __asm__("movl %%edx, %0" : "=r"(inode));
     return inode;
-}
-
-// Copies n characters from memory area str2 to memory area str1
-void *memcpy(void *dst, void *src, int count) {
-	void *temp_dst = dst;
-	while(count--) *(char *)dst++ = *(char *)src++;
-	return temp_dst;
-}
-
-// Returns length of string
-unsigned int strlen(char *str){
-	int length = 0;
-	while(*str++) ++length;
-	return length;
 }

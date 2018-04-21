@@ -89,10 +89,50 @@ void isr_handler(registers_t regs)
 		if(regs.cs == 0x1B && regs.useresp > 0x60000) {
 			remove_task(&regs);
 			puts("Task terminated.\n");
+			dump_regs(&regs);
 		}
 		else {
 			puts("[KERNEL PANIC] System halted :(");
 			getc();
 		}
 	}
+}
+
+
+void dump_regs(registers_t * regs) {
+    puts("usresp: ");
+    screen_print_int(regs->useresp, 16);
+    puts(" isresp: ");
+    screen_print_int(regs->kesp, 16);
+    puts("\ncr3: ");
+    screen_print_int(regs->cr3, 16);
+    puts("\ncs: ");
+    screen_print_int(regs->cs, 16);
+    puts(" ss: ");
+    screen_print_int(regs->ss, 16);
+    puts(" ds: ");
+    screen_print_int(regs->ds, 16);
+    puts("\neax: ");
+    screen_print_int(regs->ebp, 16);
+    puts(" ebx: ");
+    screen_print_int(regs->ebx, 16);
+    puts(" ecx: ");
+    screen_print_int(regs->edi, 16);
+    puts(" edx: ");
+    screen_print_int(regs->eax, 16);
+    puts("\nebp: ");
+    screen_print_int(regs->ecx, 16);
+    puts(" edi: ");
+    screen_print_int(regs->err_code, 16);
+    puts(" esi: ");
+    screen_print_int(regs->edx, 16);
+    puts("\neflags: ");
+    screen_print_int(regs->eflags, 16);
+    puts(" eip: ");
+    screen_print_int(regs->eip, 16);
+    puts(" err: ");
+    screen_print_int(regs->esi, 16);
+    puts(" int: ");
+    screen_print_int(regs->ss, 16);
+    puts("\n");
 }
