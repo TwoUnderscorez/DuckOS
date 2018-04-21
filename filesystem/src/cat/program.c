@@ -11,7 +11,7 @@ void main(int argc, char ** argv) {
         char * file_buff = (char *)malloc((inode->sector_usage+1)*512);
         load_file(inode_num, 0, 0, file_buff);
         for(int i = 0; i < inode->size_low; i++) {
-            if(file_buff[i] > 0x20){
+            if(file_buff[i] > 0x1F || file_buff[i] == 0x0A){
                 putc(file_buff[i]);
             }
             else{

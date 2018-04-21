@@ -89,7 +89,6 @@ void isr_handler(registers_t regs)
 		if(regs.cs == 0x1B && regs.useresp > 0x60000) {
 			remove_task(&regs);
 			puts("Task terminated.\n");
-			dump_regs(&regs);
 		}
 		else {
 			puts("[KERNEL PANIC] System halted :(");

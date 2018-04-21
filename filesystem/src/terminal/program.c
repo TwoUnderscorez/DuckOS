@@ -6,6 +6,7 @@ int strptrlen(char ** strptr);
 
 void main(int argc, char ** argv) {
     char * input = malloc(80);
+    char * path_var = malloc(90);
     char ** app_argv;
     int input_len = 0;
     while(1) {
@@ -19,10 +20,20 @@ void main(int argc, char ** argv) {
         app_argv = mystrsplit(input, ' ');
         if(!path_exists(app_argv[0])) {
             execve(app_argv[0], strptrlen(app_argv), app_argv, 1);
+            continue;
         }
-        else {
-            puts("command not found.\n");
+        memset(path_var, '\0', 90);
+        strcpy(path_var, "/bin/");
+        strcat(path_var, input);
+        app_argv = mystrsplit(path_var, ' ');
+        if(!path_exists(app_argv[0])) {
+            execve(app_argv[0], strptrlen(app_argv), app_argv, 1);
+            continue;
         }
+        
+
+        puts("command not found.\n");
+        
 	}
 }
 
