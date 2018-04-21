@@ -287,6 +287,7 @@ static void elf_init_exec(Elf32_Ehdr_t * hdr, int argc, char ** argv) {
 	task_t * elf_task = malloc(sizeof(task_t));
 	memset((void *)elf_task, '\0', sizeof(task_t));	
 	create_task(elf_task, (void *)hdr->e_entry, 0x0, (unsigned int)pdpt, usr_esp, 0);
+	strcpy(elf_task->name, argv[0]);
 	add_task(elf_task);
 	// Setup argc argv
 	void * argv_mem_ptr = malloc(0x1000);

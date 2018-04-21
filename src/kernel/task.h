@@ -9,6 +9,7 @@ struct task {
     registers_t regs;
     struct task *next;
     unsigned int pid;
+    char name[30];
 };
 
 typedef struct task task_t;
@@ -21,4 +22,5 @@ void remove_task(registers_t * regs);
 void dump_regs(registers_t * regs);
 void execve(char * path, int argc, char ** argv);
 void set_next_task_forever();
+void print_task_linked_list();
 #endif

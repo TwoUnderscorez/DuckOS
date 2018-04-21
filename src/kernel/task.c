@@ -14,6 +14,7 @@
 static task_t *runningTask;
 // Represents the kernel task
 static task_t mainTask;
+unsigned int pid_counter = 0;
  
 void init_tasking(registers_t * regs) {
     // Create a task for the kernel
@@ -43,6 +44,7 @@ void create_task(task_t *task, void (*main)(), unsigned int flags, unsigned int 
     task->regs.useresp = (unsigned int) user_esp; // Proccess' stack
     task->regs.kesp = (unsigned int)isr_esp; // ISR's stack (Ignored by roundRobinNext, see note in asmisr.asm)
     task->next = 0;
+    task->pid = pid_counter++;
 }
 
 void add_task(task_t * task) {
@@ -110,4 +112,17 @@ void execve(char * path, int argc, char ** argv) {
 
 void set_next_task_forever() {
     runningTask->next->next = runningTask->next;
+}
+
+void print_task_linked_list() {
+    task_t * task_ptr = runningTask;
+    do {
+        puts(&task_ptr->name);
+        putc('[');
+        screen_print_int(task_ptr->pid, 10);
+        puts("] -> ");
+        task_ptr = task_ptr->next;
+    }
+    while(task_ptr!=runningTask);
+    puts("\b\b\b");
 }

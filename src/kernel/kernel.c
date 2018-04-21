@@ -49,10 +49,12 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	puts("Found ext2 filesystem!\n");
     print_fs_info(); 
 	getc();
-	execve("/boot/bootscreen.quack", 0, 0);
+	char ** argv = strsplit("/boot/bootscreen.quack ", ' ');
+	execve(argv[0], 1, argv);
 	__asm__("mov $0x02, %eax");
 	__asm__("int $0x82");
-	execve("/bin/terminal", 0, 0);
+	argv = strsplit("/bin/terminal ", ' ');
+	execve(argv[0], 1, argv);
 	set_next_task_forever();
 	__asm__("mov $0x02, %eax");
 	__asm__("int $0x82");

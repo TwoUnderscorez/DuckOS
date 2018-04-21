@@ -32,6 +32,9 @@ void handle_syscall(registers_t * regs) {
                 case 0x04: // execve
                     execve((char *)regs->ebx, (int)regs->edx, (char **)regs->ecx);
                     break;
+                case 0x05: // ps
+                    print_task_linked_list();
+                    break;
                 default:
                     return;
             }
