@@ -260,6 +260,7 @@ EXT2_DIRECTORY_ENTRY_t * load_directory_structure(int inode_num, void * buff) {
 
 int path_to_inode(char * partial_path) {
     if(!strcmp("/", partial_path)) return 2;
+    if(partial_path[0] != '/') return -1;
     char * full_path = malloc(sizeof(char)*(strlen(partial_path)+2));
     strcpy(full_path, partial_path);
     strcat(full_path, "/");
@@ -287,17 +288,17 @@ int path_to_inode(char * partial_path) {
             }
         }
         while(dir->size > 8);
-        if(inode != dir->inode) {
-            return -1;
-        }
         free((void *)dir_bak);
         free((void *)tmp_inode_ptr);
+        if(inode != dir->inode) {
+            while(split_path[i]) free((void *)(split_path[i++]));
+            free((void *)split_path);
+            return -1;
+        }
         i++;
     }
     
     i = 0;
-    while(split_path[i]) free((void *)(split_path[i++]));
-    free((void *)split_path);
     return inode;
 }
 

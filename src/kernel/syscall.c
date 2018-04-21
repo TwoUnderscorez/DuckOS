@@ -82,9 +82,9 @@ void handle_syscall(registers_t * regs) {
                     regs->edx = path_to_inode((char *)regs->ebx);
                     if((int)regs->edx < 0) 
                     {
-                        remove_task(regs);
                         puts("Path not found: ");
                         puts((char *)regs->ebx);
+                        remove_task(regs);
                         puts("\nTask terminated.\n");
                     }
                     break;
