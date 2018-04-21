@@ -171,7 +171,7 @@ char *strstr(char *str, char *substr)
             ref = substr;
         }
     }
-    return '\0';
+    return  -1;
 }
 
 char **strsplit(char *string, const char delimiter) {

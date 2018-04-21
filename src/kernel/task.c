@@ -79,9 +79,15 @@ void free_task_frames(page_directory_pointer_table_entry_t * pdpt) {
 }
 
 void remove_task(registers_t * regs) {
-    task_t * prev = runningTask;
-    while(prev->next!=runningTask) prev = prev->next;
-    prev->next = runningTask->next;
+    if(runningTask->next == runningTask) {
+        runningTask->next = &mainTask;
+        mainTask.next = &mainTask;
+    }
+    else {
+        task_t * prev = runningTask;
+        while(prev->next!=runningTask) prev = prev->next;
+        prev->next = runningTask->next;
+    }
     free_task_frames((page_directory_pointer_table_entry_t *)regs->cr3);
     roundRobinNext(regs);
 }

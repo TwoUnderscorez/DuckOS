@@ -61,9 +61,11 @@ void init_memory(multiboot_info_t * mymbd) {
 }
 
 void dump_mmap(void) {
+    puts("Memory Map:\n");
+    unsigned int tmp_max_ram;
     multiboot_memory_map_t * mmap_ptr = (multiboot_memory_map_t *)mbd->mmap_addr;
     while((unsigned int)mmap_ptr < (unsigned int)(mbd->mmap_addr + mbd->mmap_length) ){
-        puts("base: 0x");
+        puts("Found {base: 0x");
         screen_print_int(mmap_ptr->addr, 16);
         puts(" length: 0x");
         screen_print_int(mmap_ptr->len, 16);
@@ -72,21 +74,28 @@ void dump_mmap(void) {
         puts(" type: ");
         switch (mmap_ptr->type) {
             case MULTIBOOT_MEMORY_AVAILABLE:
-                puts("AVAILABLE");
+                puts("AVL}\n");
                 break;
             case MULTIBOOT_MEMORY_BADRAM:
-                puts("BADRAM");
+                puts("BADRAM}\n");
                 break;
             case MULTIBOOT_MEMORY_NVS:
-                puts("NVS");
+                puts("NVS}\n");
                 break;
             case MULTIBOOT_MEMORY_RESERVED:
-                puts("RESERVED");
+                puts("RSV}\n");
+                break;
+            default:
+                puts("?\n");
                 break;
         }
-        puts("\n");
+        tmp_max_ram = mmap_ptr->addr + mmap_ptr->len;
+        if(tmp_max_ram > max_ram)
+            max_ram = tmp_max_ram;
         mmap_ptr = (multiboot_memory_map_t *)((unsigned int)mmap_ptr + sizeof(multiboot_memory_map_t));
     }
+    puts("Kernel space {base: 0x100000 limit: 0x600000}\n");
+    puts("VGA memory {base: 0xb8000 limit: 0xb8fa0}\n");
 }
 
 void apply_addr_to_frame_map(unsigned int base, unsigned int limit, unsigned char used) {
@@ -104,6 +113,7 @@ void load_kernel_pdpt() {
 void apply_mmap_to_frame_map(void) {
     unsigned int tmp_max_ram;
     multiboot_memory_map_t * mmap_ptr = (multiboot_memory_map_t *)mbd->mmap_addr;
+    apply_addr_to_frame_map(mmap_ptr, mmap_ptr+1, 1);
     while((unsigned int)mmap_ptr < (unsigned int)(mbd->mmap_addr + mbd->mmap_length) ){
         puts("Found {base: 0x");
         screen_print_int(mmap_ptr->addr, 16);
