@@ -1,0 +1,8 @@
+NAME
+       xxd - make a hexdump.
+
+SYNOPSIS
+       xxd [FILE]
+
+DESCRIPTION
+        xxd creates a hex dump of a given file.

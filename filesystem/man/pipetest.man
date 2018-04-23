@@ -1,0 +1,8 @@
+NAME
+       pipetest - command line pipe test
+
+SYNOPSIS
+       pipetest [ARGS]...
+
+DESCRIPTION
+       Demonstrate pipe functionality by printing out all the args in argv.

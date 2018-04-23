@@ -1,0 +1,8 @@
+NAME
+       ps - processes
+
+SYNOPSIS
+       ps
+
+DESCRIPTION
+        Print the processes linked list and their PIDs.

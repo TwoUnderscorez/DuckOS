@@ -1,0 +1,9 @@
+NAME
+       memoryusage - show memory usage
+
+SYNOPSIS
+       memoryusage
+
+DESCRIPTION
+       Show information about memory. Show the memory map and how much
+       memory is utilized.
