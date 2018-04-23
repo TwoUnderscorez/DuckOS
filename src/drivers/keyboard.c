@@ -60,7 +60,6 @@ char getc(){
 
 char * gets(char * buff){
     char c;
-    char * bk_buf = buff;
     c = getc();
     putc(c);
     *(buff++) = c;

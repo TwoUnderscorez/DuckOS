@@ -123,7 +123,7 @@ void set_next_task_forever() {
 void print_task_linked_list() {
     task_t * task_ptr = runningTask;
     do {
-        puts(&task_ptr->name);
+        puts((char *)&task_ptr->name);
         putc('[');
         screen_print_int(task_ptr->pid, 10);
         puts("] -> ");

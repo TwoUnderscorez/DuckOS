@@ -113,7 +113,7 @@ void load_kernel_pdpt() {
 void apply_mmap_to_frame_map(void) {
     unsigned int tmp_max_ram;
     multiboot_memory_map_t * mmap_ptr = (multiboot_memory_map_t *)mbd->mmap_addr;
-    apply_addr_to_frame_map(mmap_ptr, mmap_ptr+1, 1);
+    apply_addr_to_frame_map((unsigned int)mmap_ptr, (unsigned int)mmap_ptr+1, 1);
     while((unsigned int)mmap_ptr < (unsigned int)(mbd->mmap_addr + mbd->mmap_length) ){
         puts("Found {base: 0x");
         screen_print_int(mmap_ptr->addr, 16);
