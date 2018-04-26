@@ -328,7 +328,9 @@ void dump_frame_map(void) {
     screen_print_int(used_frames, 10);
     puts(" of ");
     screen_print_int(max_frameidx, 10);
-    puts(", that's about %");
+    puts(" (");
+    screen_print_int(max_ram/1000000, 10);
+    puts("MB), that's about %");
     screen_print_int(used_frames*100/max_frameidx, 10);
     puts(".\n");
 }

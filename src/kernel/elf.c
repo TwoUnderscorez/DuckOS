@@ -275,7 +275,7 @@ static void elf_init_exec(Elf32_Ehdr_t * hdr, int argc, char ** argv) {
 	// Map program headers to pdpt
 	elf_map_pdpt(hdr, pdpt);
 	// Setup the stack and heap
-	unsigned int usr_esp = 0x6FFFFF, heap_start = 0x700000, argv_addr = 0x600000, pdpt_bk, i, len;
+	unsigned int usr_esp = 0x6FFFFF, isr_esp = 0x601FFF, heap_start = 0x700000, argv_addr = 0x600000, pdpt_bk, i, len;
 	page_table_entry_t * data = malloc(sizeof(page_table_entry_t));
 	memset((void *)data, '\0', sizeof(page_table_entry_t));
 	data->present = 1;
@@ -283,10 +283,11 @@ static void elf_init_exec(Elf32_Ehdr_t * hdr, int argc, char ** argv) {
 	data->kernel_user = 1;
 	map_vaddr_to_pdpt(pdpt, data, usr_esp-0xFFF, usr_esp);
 	map_vaddr_to_pdpt(pdpt, data, heap_start, heap_start+1);
+	// map_vaddr_to_pdpt(pdpt, data, isr_esp-0xFFF, isr_esp);
 	// Setup the task
 	task_t * elf_task = malloc(sizeof(task_t));
 	memset((void *)elf_task, '\0', sizeof(task_t));	
-	create_task(elf_task, (void *)hdr->e_entry, 0x0, (unsigned int)pdpt, usr_esp, 0);
+	create_task(elf_task, (void *)hdr->e_entry, 0x0, (unsigned int)pdpt, usr_esp, isr_esp);
 	strcpy(elf_task->name, argv[0]);
 	add_task(elf_task);
 	// Setup argc argv

@@ -54,11 +54,15 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	__asm__("mov $0x02, %eax");
 	__asm__("int $0x82");
 	argv = strsplit("/bin/terminal ", ' ');
+	screen_clear();
+	enable_cursor();
 	do {
 		execve(argv[0], 1, argv);
 		set_next_task_forever();
 		__asm__("mov $0x02, %eax");
 		__asm__("int $0x82");
+		screen_clear();
+		set_cursor_position(0, 0);
 		puts("You have closed the last terminal, relaunching...\n");
 	}
 	while(1);

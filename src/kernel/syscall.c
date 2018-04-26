@@ -36,9 +36,10 @@ void handle_syscall(registers_t * regs) {
                 case 0x05: // ps
                     print_task_linked_list();
                     break;
-                case 0x06: // ps
+                case 0x06: // dump memory data
                     dump_mmap();
                     dump_frame_map();
+                    dump_all_task_memory_usage();
                     break;
                 default:
                     return;

@@ -23,7 +23,7 @@ void isr_handler(registers_t regs)
 		puts("exception, ");
 		switch(regs.int_no) {
 			case 0x00:
-				puts("Divide-by-zero Error");
+				puts("Division or Modulo by Zero Error");
 			break;
 			case 0x01:
 				puts("Debug");

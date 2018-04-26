@@ -100,7 +100,7 @@ void roundRobinNext(registers_t * regs) {
     // Load runningTask's state
     memcpy(regs, &runningTask->regs, (int)sizeof(registers_t));
     // Set ISR stack
-    // set_kernel_stack((unsigned int)runningTask->regs.kesp);
+    set_kernel_stack(mainTask.regs.kesp);
 }
 
 void execve(char * path, int argc, char ** argv) {
@@ -131,4 +131,46 @@ void print_task_linked_list() {
     }
     while(task_ptr!=runningTask);
     puts("\b\b\b");
+}
+
+void dump_all_task_memory_usage() {
+    puts("Loaded tasks: \n");
+    task_t * ptr = runningTask;
+    page_directory_pointer_table_entry_t * pdpt, *pdpt_bk;
+    page_directory_table_entry_t * pdir;
+    page_table_entry_t * ptab;
+    int i, j, k;
+    disablePagingAsm();
+    do {
+        pdpt = (page_directory_pointer_table_entry_t *)ptr->regs.cr3;
+        puts(&ptr->name);
+        putc('[');
+        screen_print_int(ptr->pid, 10);
+        puts("]: ");
+        for(i = 0; i<4; i++) {
+            if(pdpt[i].present) {
+                pdir = (page_directory_table_entry_t *)(pdpt[i].page_directory_table_address<<12);
+                for(j = 0; j < 512; j++) {
+                    if(pdir[j].present && !pdir[j].size) {
+                        ptab = (page_table_entry_t *)(pdir[j].page_table_address<<12);
+                        for(k = 0; k < 512; k++) {
+                            if(ptab[k].present) {
+                                screen_print_int((ptab[k].physical_page_address<<12)/0x1000, 10);
+                                putc(',');
+                            }
+                        }
+                        screen_print_int((pdir[j].page_table_address<<12)/0x1000, 10);
+                        putc(',');
+                    }
+                }
+                screen_print_int((pdpt[i].page_directory_table_address<<12)/0x1000, 10);
+                putc(',');
+            }
+        }
+        screen_print_int(((unsigned int)pdpt)/0x1000, 10);
+        putc('\n');
+        ptr = ptr->next;
+    }
+    while(ptr!=runningTask);
+    enablePagingAsm();
 }

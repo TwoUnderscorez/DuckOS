@@ -72,7 +72,10 @@ void putc(char c) {
             break;
         }
     }
-    set_cursor_position(y, x);
+    if(y<24) 
+        set_cursor_position(y+1, x);
+    else
+        set_cursor_position(y, x);
 }
 
 // Prints a string te screen
@@ -94,6 +97,13 @@ void set_cursor_position(int row, int col) {
     // cursor HIGH port to vga INDEX register
     out_byte(0x3D4, 0x0E);
     out_byte(0x3D5, (unsigned char)((position>>8)&0xFF));	//get high BYTE of WORD
+ }
+
+ void enable_cursor() { 
+    out_byte(0x3D4, 0x0A);
+    out_byte(0x3D5, (in_byte(0x3D5) & 0xC0));
+    out_byte(0x3D4, 0x0E);
+    out_byte(0x3D5, (in_byte(0x3D5) & 0xC0));
  }
 
 // Print an int to the screen

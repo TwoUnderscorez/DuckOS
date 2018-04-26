@@ -13,6 +13,13 @@ struct task {
 };
 
 typedef struct task task_t;
+
+struct context {
+    struct task *currentTask;
+    struct context *nextContext;
+};
+
+typedef struct context context_t;
  
 void create_task(task_t *task, void (*main)(), unsigned int flags, unsigned int pagedir, unsigned int user_esp, unsigned int isr_esp);
 void roundRobinNext(registers_t * regs);
@@ -23,4 +30,5 @@ void dump_regs(registers_t * regs);
 void execve(char * path, int argc, char ** argv);
 void set_next_task_forever();
 void print_task_linked_list();
+void dump_all_task_memory_usage();
 #endif

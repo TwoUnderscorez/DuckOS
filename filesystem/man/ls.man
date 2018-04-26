@@ -5,6 +5,6 @@ SYNOPSIS
        ls [OPTION]... [FILE]...
 
 DESCRIPTION
-       List  information  about  the FILEs (the current directory by default).
+       List information about the FILEs.
        -r
             list subdirectories recursively
