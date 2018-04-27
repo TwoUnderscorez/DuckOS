@@ -3,15 +3,19 @@
 #include "../libs/string.h"
 
 unsigned char *vidmem=(unsigned char *)0xb8000;
+unsigned char screen_bgfg = 0x07;
+unsigned char x=0,y=0, ymax=24;
 
-unsigned char x=0,y=0;
+void set_screen_bgfg(unsigned char bgfg) {
+    screen_bgfg = bgfg;
+}
 
 // Clears the screen
 void screen_clear(){
 	int i;
 	for(i=0;i<4000;i+=2){
 		vidmem[i]=0x20;
-		vidmem[i+1]=0x07;
+		vidmem[i+1]=screen_bgfg;
 	}
 	x=0;
 	y=0;
@@ -27,18 +31,23 @@ void screen_scroll(){
 	}
     for(i=160*24;i<4000;i+=2) {
 		vidmem[i]=0x20;
-		vidmem[i+1]=0x07;
+		vidmem[i+1]=screen_bgfg;
 	}
+}
+
+void set_ymax(unsigned char y) {
+    ymax = y;
 }
 
 // Prints a char to the screen
 void putc(char c) {
-    if(y==25){
+    if(y==ymax){
         screen_scroll();
-        y=24;
+        y=ymax-1;
     }
     if(c>0x1f&&c!=0x7f){
         vidmem[2*(x+y*80)]=c;
+        vidmem[2*(x+y*80)+1]=screen_bgfg;
         x++;
         if(x==80){
             y++;

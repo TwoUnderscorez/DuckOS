@@ -31,4 +31,5 @@ void execve(char * path, int argc, char ** argv);
 void set_next_task_forever();
 void print_task_linked_list();
 void dump_all_task_memory_usage();
+void disp_heap(unsigned int pid);
 #endif

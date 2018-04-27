@@ -131,6 +131,18 @@ void print_task_linked_list() {
     }
     while(task_ptr!=runningTask);
     puts("\b\b\b");
+    task_ptr = runningTask;
+    do {
+        putc('\n');
+        puts((char *)&task_ptr->name);
+        putc('[');
+        screen_print_int(task_ptr->pid, 10);
+        puts("]:\n");
+        disp_heap(task_ptr->pid);
+        getc();
+        task_ptr = task_ptr->next;
+    }
+    while(task_ptr!=runningTask);
 }
 
 void dump_all_task_memory_usage() {
@@ -173,4 +185,28 @@ void dump_all_task_memory_usage() {
     }
     while(ptr!=runningTask);
     enablePagingAsm();
+}
+
+void disp_heap(unsigned int pid) {
+    task_t * ptr = runningTask;
+    memory_block_header_t * heap_ptr = 0x700000;
+    unsigned int pdpt_bk, i;
+    do {
+        ptr = ptr->next;
+    }
+    while((ptr->pid != pid) && (ptr != runningTask));
+    pdpt_bk = swapPageDirectoryAsm((unsigned int *)ptr->regs.cr3);
+    if(!heap_ptr->used) return;
+    do {
+        set_screen_bgfg(0x70);
+        puts("Length: ");
+        screen_print_int(heap_ptr->length, 10);
+        puts("B; used: ");
+        if(heap_ptr->used) puts("yes");
+        else puts("no");
+        set_screen_bgfg(0x07);
+        for(i = 0; i < heap_ptr->length; i++) screen_print_int(*((char *)(heap_ptr + i)), 16);
+        heap_ptr = heap_ptr->next;
+    } while(heap_ptr->length > 0);
+    swapPageDirectoryAsm(pdpt_bk);
 }

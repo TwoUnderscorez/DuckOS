@@ -1,4 +1,5 @@
 #include "kernel.h"
+#include "../drivers/screen.h"
 #include "descriptors.h"
 #include "memory.h"
 #include "multiboot.h"
@@ -6,7 +7,6 @@
 #include "pic.h"
 #include "elf.h"
 #include "task.h"
-#include "../drivers/screen.h"
 #include "../drivers/keyboard.h"
 #include "../asm/asmio.h"
 #include "../drivers/atapio.h"
@@ -20,6 +20,7 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 		return -1;
 	}
 	puts("Welcome to DuckOS!!!\n");
+	set_ymax(25);
 	puts("Setting up the GDT... ");
 	gdt_setup();
 	puts("[OK]\n");
@@ -54,6 +55,7 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	__asm__("mov $0x02, %eax");
 	__asm__("int $0x82");
 	argv = strsplit("/bin/terminal ", ' ');
+	set_ymax(24);
 	screen_clear();
 	enable_cursor();
 	do {
