@@ -54,6 +54,12 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	execve(argv[0], 1, argv);
 	__asm__("mov $0x02, %eax");
 	__asm__("int $0x82");
+	int j;
+	for(int i = 0; i < 25; i++) {
+		j=0;
+		while(j++<10000000);
+		screen_scroll();
+	}
 	argv = strsplit("/bin/terminal ", ' ');
 	set_ymax(24);
 	screen_clear();

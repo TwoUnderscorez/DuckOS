@@ -44,6 +44,11 @@ void screen_clear() {
     __asm__("int $0x83");
 }
 
+void set_screen_bgfg(unsigned char bgfg) {
+    __asm__("mov $0x04, %%eax" :: "b" (bgfg));
+    __asm__("int $0x83");
+}
+
 void putc(char c) {
     __asm__("mov $0x01, %%eax" :: "b" (c));
     __asm__("int $0x83");

@@ -205,8 +205,14 @@ void disp_heap(unsigned int pid) {
         if(heap_ptr->used) puts("yes");
         else puts("no");
         set_screen_bgfg(0x07);
-        for(i = 0; i < heap_ptr->length; i++) screen_print_int(*((char *)(heap_ptr + i)), 16);
+        for(i = 0; i < heap_ptr->length; i++){
+            set_screen_bgfg(0x07);
+            screen_print_int(*((char *)(heap_ptr + i++)), 16);
+            set_screen_bgfg(0x0F);
+            screen_print_int(*((char *)(heap_ptr + i)), 16);
+        }
         heap_ptr = heap_ptr->next;
     } while(heap_ptr->length > 0);
     swapPageDirectoryAsm(pdpt_bk);
+    set_screen_bgfg(0x07);
 }

@@ -15,6 +15,7 @@ void main(int argc, char ** argv) {
         memset(input, '\0', 80);
 		gets(input);
         input_len = strlen(input);
+        if(input_len < 2) continue;
         if(input[input_len-1] != ' ') {
             input[input_len-1] = ' ';
             input[input_len] = '\0';
@@ -39,12 +40,14 @@ void main(int argc, char ** argv) {
             continue;
         }
         app_argv = mystrsplit(input, ' ');
-        if(!strcmp(app_argv[0], "exit")) _exit();
+        
+        if(!strcmp(app_argv[0], "cls")) screen_clear();
+        else if(!strcmp(app_argv[0], "exit")) _exit();
         else if(!strcmp(app_argv[0], "yield")) task_yield();
-        else if(!strcmp(app_argv[0], "cls")) screen_clear();
         else if(!strcmp(app_argv[0], "setupelf")) setupelf(input);
         else puts("command not found.\n");
 	}
+    while(1);
 }
 
 void setupelf(char * input) {
