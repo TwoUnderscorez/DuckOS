@@ -148,14 +148,14 @@ void print_task_linked_list() {
 void dump_all_task_memory_usage() {
     puts("Loaded tasks: \n");
     task_t * ptr = runningTask;
-    page_directory_pointer_table_entry_t * pdpt, *pdpt_bk;
+    page_directory_pointer_table_entry_t * pdpt;
     page_directory_table_entry_t * pdir;
     page_table_entry_t * ptab;
     int i, j, k;
     disablePagingAsm();
     do {
         pdpt = (page_directory_pointer_table_entry_t *)ptr->regs.cr3;
-        puts(&ptr->name);
+        puts((char *)&ptr->name);
         putc('[');
         screen_print_int(ptr->pid, 10);
         puts("]: ");
@@ -189,7 +189,7 @@ void dump_all_task_memory_usage() {
 
 void disp_heap(unsigned int pid) {
     task_t * ptr = runningTask;
-    memory_block_header_t * heap_ptr = 0x700000;
+    memory_block_header_t * heap_ptr = (memory_block_header_t *)0x700000;
     unsigned int pdpt_bk, i;
     do {
         ptr = ptr->next;
@@ -197,6 +197,7 @@ void disp_heap(unsigned int pid) {
     while((ptr->pid != pid) && (ptr != runningTask));
     pdpt_bk = swapPageDirectoryAsm((unsigned int *)ptr->regs.cr3);
     if(!heap_ptr->used) return;
+    unsigned char c;
     do {
         set_screen_bgfg(0x70);
         puts("Length: ");
@@ -207,12 +208,15 @@ void disp_heap(unsigned int pid) {
         set_screen_bgfg(0x07);
         for(i = 0; i < heap_ptr->length; i++){
             set_screen_bgfg(0x07);
-            screen_print_int(*((char *)(heap_ptr + i++)), 16);
+            c = *((unsigned char *)((unsigned int)heap_ptr + sizeof(memory_block_header_t) + i));
+            screen_print_int(c, 16);
+            i++;
             set_screen_bgfg(0x0F);
-            screen_print_int(*((char *)(heap_ptr + i)), 16);
+            c = *((unsigned char *)((unsigned int)heap_ptr + sizeof(memory_block_header_t) + i));
+            screen_print_int(c, 16);
         }
         heap_ptr = heap_ptr->next;
     } while(heap_ptr->length > 0);
-    swapPageDirectoryAsm(pdpt_bk);
+    swapPageDirectoryAsm((unsigned int *)pdpt_bk);
     set_screen_bgfg(0x07);
 }

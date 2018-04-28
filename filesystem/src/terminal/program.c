@@ -39,8 +39,10 @@ void main(int argc, char ** argv) {
             free((void *)app_argv);
             continue;
         }
+        i = 0;
         app_argv = mystrsplit(input, ' ');
-        
+        while(app_argv[i]) free((void *)(app_argv[i++]));
+        free((void *)app_argv);
         if(!strcmp(app_argv[0], "cls")) screen_clear();
         else if(!strcmp(app_argv[0], "exit")) _exit();
         else if(!strcmp(app_argv[0], "yield")) task_yield();
@@ -52,7 +54,6 @@ void main(int argc, char ** argv) {
 
 void setupelf(char * input) {
     char ** app_argv;
-    // puts(input + strlen("setupelf")+1);
     app_argv = mystrsplit(input + strlen("setupelf")+1, ' ');
     if(!path_exists(app_argv[0])) {
         execve(app_argv[0], strptrlen(app_argv), app_argv, 0);
