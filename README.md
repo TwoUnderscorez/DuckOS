@@ -27,7 +27,10 @@ to the image with w.
 # Video
 [Watch Demo](https://1drv.ms/v/s!AuOa6AuDFR2egqMCWBcWFKsGTR2mng)
 
-# Screenshots
+# arbel03's OS
+An operating system similar to mine, but written in rust, utilizes segmentation and implements FAT32, [click here to check it out!](https://github.com/arbel03/os)
+
+# DuckOS Screenshots
 
 ### Kernel Heap
 ![Kernel Heap](https://user-images.githubusercontent.com/25303006/35394829-68be0952-01f1-11e8-9d00-018af7fac4c7.png)
