@@ -29,7 +29,7 @@ void screen_scroll(){
 	for(i=160;i<4000;i++){
 		vidmem[i-160]=vidmem[i];
 	}
-    for(i=160*24;i<4000;i+=2) {
+    for(i=160*23;i<160*ymax;i+=2) {
 		vidmem[i]=0x20;
 		vidmem[i+1]=screen_bgfg;
 	}

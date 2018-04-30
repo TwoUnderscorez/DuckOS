@@ -1,6 +1,7 @@
 #include "../../lib/libduck.h"
+#include "../../lib/string.h"
 void main(int argc, char ** argv);
-void hexDump (char *desc, void *addr, int len);
+void phexDump (char *desc, void *addr, int len);
 
 void main(int argc, char ** argv) {
     if(argc > 1) {
@@ -9,12 +10,12 @@ void main(int argc, char ** argv) {
         load_inode(inode_num, inode);
         void * file_buff = malloc((inode->sector_usage+1)*512);
         load_file(inode_num, 0, 0, file_buff);
-        hexDump(argv[1], file_buff, inode->size_low);
+        phexDump(argv[1], file_buff, inode->size_low);
     }
 }
 
-void hexDump (char *desc, void *addr, int len) {
-    int i;
+void phexDump (char *desc, void *addr, int len) {
+    int i, j = 0;
     char buff[17], buff2[10];
     unsigned char *pc = (unsigned char*)addr;
 
@@ -40,6 +41,16 @@ void hexDump (char *desc, void *addr, int len) {
             if (i != 0)
 				puts (buff);
 				puts("\n");
+                j++;
+                if(j==24) {
+                    putc(' ');
+                    set_screen_bgfg(0x70);
+                    puts("--MORE--");
+                    set_screen_bgfg(0x07);
+                    getc();
+                    puts("\b\b\b\b\b\b\b\b\b\b");
+                    j=0;
+                }
 
             // Output the offset.
             // printf ("  %04x ", i);
