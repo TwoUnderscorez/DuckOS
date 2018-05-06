@@ -60,16 +60,18 @@ char getc(){
 
 char * gets(char * buff){
     char c;
-    c = getc();
-    putc(c);
-    *(buff++) = c;
+    int counter = 0;
+    c = ' ';
     while(c!='\n'){
         c = getc();
         if(c == 0x08) {
+            if(counter<1) continue;
             buff--;
+            counter--;
         }
         else {
             *(buff++) = c;
+            counter++;
         }
         putc(c);
     }
