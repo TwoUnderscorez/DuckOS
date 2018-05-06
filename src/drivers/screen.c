@@ -4,7 +4,7 @@
 
 unsigned char *vidmem=(unsigned char *)0xb8000;
 unsigned char screen_bgfg = 0x07;
-unsigned char x=0,y=0, ymax=24;
+unsigned char x=0,y=0, ymax=25;
 
 void set_screen_bgfg(unsigned char bgfg) {
     screen_bgfg = bgfg;
@@ -26,10 +26,10 @@ void screen_clear(){
 void screen_scroll(){
 	int i = 5000000;
     // while(i) --i;
-	for(i=160;i<4000;i++){
+	for(i=160;i<160*ymax;i++){
 		vidmem[i-160]=vidmem[i];
 	}
-    for(i=160*23;i<160*ymax;i+=2) {
+    for(i=160*(ymax-1);i<160*ymax;i+=2) {
 		vidmem[i]=0x20;
 		vidmem[i+1]=screen_bgfg;
 	}

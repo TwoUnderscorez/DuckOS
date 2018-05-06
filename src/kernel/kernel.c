@@ -48,7 +48,7 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	init_ext2fs();
 	puts("[OK]\n");
 	puts("Found ext2 filesystem!\n");
-    print_fs_info(); 
+    print_fs_info();
 	getc();
 	char ** argv = strsplit("/boot/bootscreen.quack ", ' ');
 	execve(argv[0], 1, argv);
