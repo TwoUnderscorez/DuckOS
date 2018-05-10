@@ -208,9 +208,6 @@ unsigned int kalloc_frame()
     disablePagingAsm();
     memset((void *)ret, '\0', 0x1000);
     enablePagingAsm();
-    // puts("kalloced: ");
-    // screen_print_int(ret, 16);
-    // puts("\n");
     // asmsti();
     return(ret);
 }
@@ -221,9 +218,6 @@ void kfree_frame(unsigned int page_frame_addr)
     page_frame_addr = (unsigned int)(page_frame_addr); 
     // Divide by 4kb to get the index of the page frame in frame_map
     bitmapReset((unsigned char *)frame_map, ((unsigned int)page_frame_addr)/0x1000);
-    // puts("freed: ");
-    // screen_print_int(page_frame_addr, 16);
-    // puts("\n");
 }
 
 // Create a page directory pointer table for a userland process
@@ -278,7 +272,7 @@ void map_vaddr_to_pdpt(page_directory_pointer_table_entry_t * pdpt,
     for(; base <= limit; base+=0x1000) {
         // Find the indices of the vaddr in the pdpt, pd and pt.
         pdpt_idx = pd_idx = pt_idx = 0;
-        pdpt_idx = (base>>29)&0b11;
+        pdpt_idx = (base>>30)&0b11;
         pd_idx   = (base>>21)&0b00111111111;
         pt_idx   = (base>>12)&0b00000000000111111111;
         // Create a page directory pointer table entry for a page directory table if it's not present.

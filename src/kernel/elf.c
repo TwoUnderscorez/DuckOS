@@ -168,8 +168,6 @@ static int elf_map_pdpt(Elf32_Ehdr_t *hdr, page_directory_pointer_table_entry_t 
 		Elf32_Phdr_t *segment = &phdr[i];
 		// Skip if it the segment is empty
 		if(!segment->p_memsz) return -1;
-		// add mapping in pdpt based on segment->p_vaddr
-		// and segment->p_memsz
 		data->present = 1;
 		data->ro_rw = 1;
 		data->kernel_user = 1;
@@ -178,21 +176,7 @@ static int elf_map_pdpt(Elf32_Ehdr_t *hdr, page_directory_pointer_table_entry_t 
 		memcpy((void *)(segment->p_vaddr),
 			   (void *)( (unsigned int)hdr + (unsigned int)segment->p_offset ), 
 			   segment->p_filesz);
-		// hexDump("seg",
-		// 		(void *)((unsigned int)(data->physical_page_address<<12) + (unsigned int)(segment->p_vaddr&0xFFF)), 
-		// 		segment->p_filesz);
 		swapPageDirectoryAsm((unsigned int *)pdpt_bk);
-		// puts("vaddr: ");
-		// screen_print_int(segment->p_vaddr, 16);
-		// puts("-");
-		// screen_print_int(segment->p_vaddr + segment->p_memsz, 16);
-		// puts(" Size: "); 
-		// screen_print_int(segment->p_memsz, 16);
-		// puts(" offset: ");
-		// screen_print_int(segment->p_vaddr&0xFFF, 16);
-		// puts(" at paddr: ");
-		// screen_print_int( (unsigned int)(data->physical_page_address<<12) + (unsigned int)(segment->p_vaddr&0xFFF), 16);
-		// puts("\n");
 	}
 	free(data);
 	return 0;

@@ -42,7 +42,7 @@ static int determine_block_of_inode(int inode) {
 static int determine_block_group_addr(int block_group_num) {
     return ext2_superblock->NOF_BLOCKS_IN_BLOCK_GROUP * (unsigned int)block_group_num + EXT2_BLOCK_GROUP_DESCRIPTOR_OFFSET;
 }
-#pragma endregionc
+#pragma endregion
 
 #pragma region convertions
 static int ext2_block_to_lba(int block_num){
