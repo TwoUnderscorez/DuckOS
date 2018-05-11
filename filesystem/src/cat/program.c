@@ -14,10 +14,11 @@ void main(int argc, char ** argv) {
             file_buff = (char *)malloc((inode->sector_usage+1)*512);
             load_file(inode_num, 0, 0, file_buff);
             for(int i = 0; i < inode->size_low; i++) {
+                // If it's a printable character, print it
                 if(file_buff[i] > 0x1F || file_buff[i] == 0x0A){
                     putc(file_buff[i]);
                 }
-                else{
+                else{ // If not, print a dot
                     putc('.');
                 }
             }

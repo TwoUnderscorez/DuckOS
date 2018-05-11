@@ -11,12 +11,15 @@ void main(int argc, char ** argv);
 void disp_heap();
 
 void main(int argc, char ** argv) {
+    // Sanity check - allocate an int and assign it a recognizable value
     unsigned int * ptr = malloc(sizeof(int));
     *ptr = 0xDDCCBBAA;
     puts("Heap:\n");
     getc();
-    disp_heap();
+    disp_heap(); // And display the heap
+    // Allocate 0x1500, which is greater than the initial heap size
     ptr = malloc(0x1500);
+    // assign it a recognizable value somewhere neer the end
     *(unsigned int *)((unsigned int)ptr + 0x1450) = 0xDDCCBBAA;
     puts("\nHeap:\n");
     getc();
