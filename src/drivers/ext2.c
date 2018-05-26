@@ -245,7 +245,7 @@ EXT2_DIRECTORY_ENTRY_t * load_directory_structure(int inode_num, void * buff) {
     load_inode(inode_num, inode);
     EXT2_DIRECTORY_ENTRY_t * dirinfo = (EXT2_DIRECTORY_ENTRY_t *)buff;
     if(!dirinfo) puts("null");
-    memset((void *)dirinfo, '\0', 2*inode->size_low);
+    memset((void *)dirinfo, '\0', inode->size_low);
     int i;
     // read the contents
     for(i = 0; i < inode->size_low/(1024<<ext2_superblock->LOG2_BLOCK_SIZE); i++) {
