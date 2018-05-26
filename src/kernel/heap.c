@@ -19,10 +19,22 @@ void *malloc(unsigned int size) {
     while((ptr != 0) && (ptr->used || ptr->length < size ) ){
         ptr = ptr->next;
     }
+    if((unsigned int)ptr > heap_end || (unsigned int)ptr < heap_start)
+    {
+        puts("Kernel out of memory.\n");
+        puts("[KERNEL PANIC] System halted :(");
+        while(1);   
+    }
     if(ptr->length == -1) {
         ptr->length = size;
         ptr->used = 1;
         ptr->next = ptr + size + sizeof(memory_block_header_t); 
+        if((unsigned int)ptr->next > heap_end || (unsigned int)ptr->next < heap_start)
+        {
+            puts("Kernel out of memory.\n");
+            puts("[KERNEL PANIC] System halted :(");
+            while(1);   
+        }
         ptr->next->length = -1;
         ptr->next->used = 0;
         ptr->next->next = 0;
@@ -30,8 +42,6 @@ void *malloc(unsigned int size) {
     else { 
         ptr->used = 1;
     }
-    if((unsigned int)ptr > heap_end)
-        return 0;
     retaddr = (void *)((unsigned int)ptr + sizeof(memory_block_header_t));
     memset(retaddr, 0, size);
     return retaddr;

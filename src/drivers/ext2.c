@@ -297,7 +297,7 @@ int path_to_inode(char * partial_path) {
         }
         i++;
     }
-    
+    free((void *)full_path);
     i = 0;
     return inode;
 }

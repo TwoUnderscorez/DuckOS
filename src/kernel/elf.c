@@ -205,6 +205,7 @@ static int elf_load_stage1(Elf32_Ehdr_t *hdr) {
 				puts("Allocated memory for a section "); 
 				screen_print_int(section->sh_size, 10);
 				puts("\n");
+				free(mem);
 			}
 		}
 	}
@@ -296,6 +297,9 @@ static void elf_init_exec(Elf32_Ehdr_t * hdr, int argc, char ** argv) {
 	swapPageDirectoryAsm((unsigned int *)pdpt_bk);
 	elf_task->regs.ebx = argc;
 	elf_task->regs.ecx = (unsigned int)argv_ptr2;
+	free(data);
+	free((void *)argv_mem_ptr);
+	free((void *)argv_ptr);
 } 
  
 void *elf_load_file(void *file, int argc, char ** argv) {

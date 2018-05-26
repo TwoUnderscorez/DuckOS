@@ -92,7 +92,7 @@ void isr_handler(registers_t regs)
 		}
 		else {
 			puts("[KERNEL PANIC] System halted :(");
-			getc();
+			while(1);
 		}
 	}
 }

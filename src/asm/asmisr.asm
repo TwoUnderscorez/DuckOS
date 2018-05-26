@@ -1,8 +1,8 @@
 global temp
 extern screen_print_int
 
-; NOTE: All I can only handle one interrupt at a time (for now) because 
-;	    I have one global ISR stack and not ISR stack per task because
+; NOTE: The syscall manager handles only one interrupt at a time (for now) 
+;	    because I have one global ISR stack and not ISR stack per task because
 ;		I didn't have enough time to debug that.
 
 ; ISR definition for interrupts without an err code

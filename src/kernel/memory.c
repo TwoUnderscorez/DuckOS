@@ -29,23 +29,6 @@ void init_memory(multiboot_info_t * mymbd) {
         page_dir[i].page_table_address = (i*0x200000)>>12;
         page_dir[i].kernel_user = 0;
     }
-    ////////////////////////////////////////////////////////////////////////////
-    // An unsuccessful attempt at making a Higher Half Kernel
-    // unsigned int i, address = 0xB0000000;
-    // puts("\n");
-    // for(i = 388; i < 475; i++){
-    //     screen_print_int(address>>12, 16);
-    //     puts(" ");
-    //     page_dir[i].present = 1;
-    //     page_dir[i].ro_rw = 1;
-    //     page_dir[i].size = 1;
-    //     page_dir[i].page_table_address = (unsigned int)address>>12;
-    //     screen_print_int(page_dir[i].page_table_address, 16);
-    //     puts("\n");
-    //     getc();
-    //     page_dir[i].kernel_user = 0;
-    //     address = (unsigned int)((unsigned int)address + (unsigned int)0x200000);
-    // }
     puts("Enabaling PAE paging...\n");
     enablePaePagingAsm(); 
     swapPageDirectoryAsm((unsigned int *)&page_dir_ptr_tab);
@@ -206,7 +189,7 @@ unsigned int kalloc_frame()
     pframe++;
     // asmcli();
     disablePagingAsm();
-    memset((void *)ret, '\0', 0x1000);
+    memset((void *)ret, 0, 0x1000);
     enablePagingAsm();
     // asmsti();
     return(ret);

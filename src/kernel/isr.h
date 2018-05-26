@@ -8,7 +8,7 @@ struct registers
 	unsigned int edi, esi, ebp, kesp, ebx, edx, ecx, eax;//
 	unsigned int int_no, err_code; 						 // Pushed by ISRs in asmisr.asm
 	unsigned int eip, cs, eflags, useresp, ss; 			 // Pushed by int opcode
-};
+}__attribute__((packed));
 
 typedef struct registers registers_t;
 

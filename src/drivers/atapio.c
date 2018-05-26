@@ -40,8 +40,8 @@ void ata_read_sectors(unsigned int lba, char sector_count, char *buffer) {
 	out_byte(ATA_COMMAND_REGISTER_PORT, ATA_READ); //read command
 	unsigned int offset = 0, i = 0;
 	while(sector_count--) {
-		ata_wait_for_rdy(ATA_REGULAR_STATUS_REGISTER_PORT);
-        ata_wait_for_drq(ATA_REGULAR_STATUS_REGISTER_PORT);
+		ata_wait_for_rdy(ATA_REGULAR_STATUS_REGISTER_PORT); // Spun up
+        ata_wait_for_drq(ATA_REGULAR_STATUS_REGISTER_PORT); // Ready for transfer
 		for(i = 0;i < 256;i++) {
 			*( (unsigned short *)buffer + offset + i ) = in_word(ATA_DATA_REGISTER_PORT);
 		}
