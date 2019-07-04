@@ -5,71 +5,91 @@
 
 //key down only
 char scanducks[181] =
-{
-  0,0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 8 /* <- Backspace */,
-  '\t' /* <- Tab */, 'q', 'w', 'e', 'r',  't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n' /* <- Enter key */,
-   0,			/* 29   - Control */
-  'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', 0 /*<- Left shift */,
-  '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0,	 /*<- Right shift */
-  '*',
-    0,	/* Alt */
-  ' ',	/* Space bar */
-    0,	/* Caps lock */
-    0,	/* 59 - F1 key ... > */
-    0,   0,   0,   0,   0,   0,   0,   0,
-    0,	/* < ... F10 */
-    0,	/* 69 - Num lock*/
-    0,	/* Scroll Lock */
-    0,	/* Home key */
-    0,	/* Up Arrow */
-    0,	/* Page Up */
-  '-',
-    0,	/* Left Arrow */
-    0,
-    0,	/* Right Arrow */
-  '+',
-    0,	/* 79 - End key*/
-    0,	/* Down Arrow */
-    0,	/* Page Down */
-    0,	/* Insert Key */
-    0,	/* Delete Key */
-    0,   0,   0,
-    0,	/* F11 Key */
-    0,	/* F12 Key */
-    0,	/* All other keys are undefined */
+    {
+        0, 0, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 8 /* <- Backspace */,
+        '\t' /* <- Tab */, 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n' /* <- Enter key */,
+        0, /* 29   - Control */
+        'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', 0 /*<- Left shift */,
+        '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0, /*<- Right shift */
+        '*',
+        0,   /* Alt */
+        ' ', /* Space bar */
+        0,   /* Caps lock */
+        0,   /* 59 - F1 key ... > */
+        0, 0, 0, 0, 0, 0, 0, 0,
+        0, /* < ... F10 */
+        0, /* 69 - Num lock*/
+        0, /* Scroll Lock */
+        0, /* Home key */
+        0, /* Up Arrow */
+        0, /* Page Up */
+        '-',
+        0, /* Left Arrow */
+        0,
+        0, /* Right Arrow */
+        '+',
+        0, /* 79 - End key*/
+        0, /* Down Arrow */
+        0, /* Page Down */
+        0, /* Insert Key */
+        0, /* Delete Key */
+        0, 0, 0,
+        0, /* F11 Key */
+        0, /* F12 Key */
+        0, /* All other keys are undefined */
 };
 
-static char get_scanduck_from_keyboard() {
+static char keyboard_get_scanduck_from_keyboard()
+{
     static char c, ex;
     c = in_byte(0x60);
-    do {
+    do
+    {
         ex = in_byte(0x60);
-        if(ex!=c) {		    //if what I pressed a split second ago != what I pressed now
-            c=ex;		    //get scan code
-            if(c>0)
-                return c;   //return c
+        if (ex != c)
+        {           //if what I pressed a split second ago != what I pressed now
+            c = ex; //get scan code
+            if (c > 0)
+                return c; //return c
         }
-    } while(1);
+    } while (1);
 }
 
-char getc(){
+/**
+ * @brief Get a character from the keyboard
+ * 
+ * @return char 
+ */
+char getc()
+{
     char c;
-    c = scanducks[get_scanduck_from_keyboard()];
+    c = scanducks[keyboard_get_scanduck_from_keyboard()];
     return c;
 }
 
-char * gets(char * buff){
+/**
+ * @brief Get a string from the keyboard
+ * 
+ * @param buff 
+ * @return char* 
+ */
+char *gets(char *buff)
+{
     char c;
     int counter = 0;
     c = ' ';
-    while(c!='\n'){
+    while (c != '\n')
+    {
         c = getc();
-        if(c == 0x08) {
-            if(counter<1) continue;
+        if (c == 0x08)
+        {
+            if (counter < 1)
+                continue;
             buff--;
             counter--;
         }
-        else {
+        else
+        {
             *(buff++) = c;
             counter++;
         }
@@ -79,17 +99,27 @@ char * gets(char * buff){
     return buff;
 }
 
-char * getns(char * buff, unsigned int n){
+/**
+ * @brief Get a string from the keyboard with maximum length n
+ * 
+ * @param buff 
+ * @param n 
+ * @return char* 
+ */
+char *getns(char *buff, unsigned int n)
+{
     char c;
     c = getc();
-    while(c!='\n' && n-- > 1){
+    while (c != '\n' && n-- > 1)
+    {
         *(buff++) = c;
         c = getc();
     }
     return buff;
 }
 
-int get_key() {
+int get_key()
+{
     return -1;
 }
 
