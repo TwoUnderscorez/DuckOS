@@ -1,2 +1,0 @@
-file ./filesystem/kernel/kernel.sys
-target remote localhost:1234
