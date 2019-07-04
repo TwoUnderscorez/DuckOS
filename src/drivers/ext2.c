@@ -7,67 +7,79 @@
 #include "../drivers/keyboard.h"
 #include "../kernel/task.h"
 
-EXT2_SUPERBLOCK_t * ext2_superblock = 0;
+EXT2_SUPERBLOCK_t *ext2_superblock = 0;
 
 #pragma region determining stuff
-static int determine_the_number_of_block_groups() {
+static int determine_the_number_of_block_groups()
+{
     /* Rounding up the total number of blocks 
      * divided by the number of blocks per block group 
      */
-    int num1 = cell((double)ext2_superblock->BLOCK_NUM/ext2_superblock->NOF_BLOCKS_IN_BLOCK_GROUP);
+    int num1 = cell((double)ext2_superblock->BLOCK_NUM / ext2_superblock->NOF_BLOCKS_IN_BLOCK_GROUP);
     /* Rounding up the total number of inodes
      * divided by the number of inodes per block group 
      */
-    int num2 = cell((double)ext2_superblock->INODE_NUM/ext2_superblock->NOF_INODES_IN_BLOCK_GROUP);
-    if (num1 - num2) {
+    int num2 = cell((double)ext2_superblock->INODE_NUM / ext2_superblock->NOF_INODES_IN_BLOCK_GROUP);
+    if (num1 - num2)
+    {
         puts("\nInvalid EXT2 superblock!\n");
         __asm__("int $0x08");
     }
     return num1;
-} 
+}
 
-static int determine_inode_block_group(int inode) {
+static int determine_inode_block_group(int inode)
+{
     return (inode - 1) / ext2_superblock->NOF_INODES_IN_BLOCK_GROUP;
 }
 
-static int determine_index_of_inode_in_inode_table(int inode) {
+static int determine_index_of_inode_in_inode_table(int inode)
+{
     return (inode - 1) % ext2_superblock->NOF_INODES_IN_BLOCK_GROUP;
 }
 
-static int determine_block_of_inode(int inode) {
+static int determine_block_of_inode(int inode)
+{
     int index = determine_index_of_inode_in_inode_table(inode);
-    return ( index * ext2_superblock->SIZE_OF_INODE) / 1024<<ext2_superblock->LOG2_BLOCK_SIZE;
+    return (index * ext2_superblock->SIZE_OF_INODE) / 1024 << ext2_superblock->LOG2_BLOCK_SIZE;
 }
 
-static int determine_block_group_addr(int block_group_num) {
+static int determine_block_group_addr(int block_group_num)
+{
     return ext2_superblock->NOF_BLOCKS_IN_BLOCK_GROUP * (unsigned int)block_group_num + EXT2_BLOCK_GROUP_DESCRIPTOR_OFFSET;
 }
 #pragma endregion
 
 #pragma region convertions
-static int ext2_block_to_lba(int block_num){
+static int ext2_block_to_lba(int block_num)
+{
     return EXT2_PARTITION_START + block_num * 2;
 }
 
-static int lba_to_ext2_block(int lba){
-    return (lba - EXT2_PARTITION_START)/2;
+static int lba_to_ext2_block(int lba)
+{
+    return (lba - EXT2_PARTITION_START) / 2;
 }
 #pragma endregion
 
-static void load_superblock(int sb_addr) {
+static void load_superblock(int sb_addr)
+{
     ext2_superblock = malloc(sizeof(EXT2_SUPERBLOCK_t));
-    ata_read_sectors(ext2_block_to_lba(sb_addr), 2, (char *)ext2_superblock);
+    atapio_read_sectors(ext2_block_to_lba(sb_addr), 2, (char *)ext2_superblock);
 }
 
-static void verify_superblock() {
-    if(ext2_superblock->EXT2_SIGNATURE == 0xEF53) {
+static void verify_superblock()
+{
+    if (ext2_superblock->EXT2_SIGNATURE == 0xEF53)
+    {
         return;
     }
     puts("\nInvalid FS or EXT2 superblock!\n");
     __asm__("int $0x08");
 }
 
-void print_fs_info() {
+void print_fs_info()
+{
     puts("{signature : ");
     screen_print_int(ext2_superblock->EXT2_SIGNATURE, 16);
     puts("; version : ");
@@ -75,13 +87,14 @@ void print_fs_info() {
     puts(".");
     screen_print_int(ext2_superblock->VERSION_MINOR, 10);
     puts("; volume name : ");
-    if(ext2_superblock->CSTR_VOLUME_NAME){
+    if (ext2_superblock->CSTR_VOLUME_NAME)
+    {
         puts((char *)ext2_superblock->CSTR_VOLUME_NAME);
     }
     puts("; NOF block groups : ");
     screen_print_int(determine_the_number_of_block_groups(), 10);
     puts("; block size : ");
-    screen_print_int(1024<<ext2_superblock->LOG2_BLOCK_SIZE, 10);
+    screen_print_int(1024 << ext2_superblock->LOG2_BLOCK_SIZE, 10);
     puts("; First non-reserved inode in file system : ");
     screen_print_int(ext2_superblock->FIRST_NRSV_INODE_NUM, 10);
     puts("; inode size : ");
@@ -91,17 +104,20 @@ void print_fs_info() {
     puts("}\n");
 }
 
-static EXT2_BLOCK_GROUP_DESCRIPTOR_t * load_block_group_descriptor(int block_group_num) {
-    EXT2_BLOCK_GROUP_DESCRIPTOR_t * ext2_gp_desc = malloc(512);
-    if(!ext2_gp_desc) puts("null");
+static EXT2_BLOCK_GROUP_DESCRIPTOR_t *load_block_group_descriptor(int block_group_num)
+{
+    EXT2_BLOCK_GROUP_DESCRIPTOR_t *ext2_gp_desc = malloc(512);
+    if (!ext2_gp_desc)
+        puts("null");
     memset((void *)ext2_gp_desc, '\0', sizeof(512));
     int addr = determine_block_group_addr(block_group_num);
-    ata_read_sectors(ext2_block_to_lba(addr), 1, (char *)ext2_gp_desc);
+    atapio_read_sectors(ext2_block_to_lba(addr), 1, (char *)ext2_gp_desc);
     return ext2_gp_desc;
 }
 
-static void print_block_group_descriptor(int block_group_num) {
-    EXT2_BLOCK_GROUP_DESCRIPTOR_t * blkgp = load_block_group_descriptor(block_group_num);
+static void print_block_group_descriptor(int block_group_num)
+{
+    EXT2_BLOCK_GROUP_DESCRIPTOR_t *blkgp = load_block_group_descriptor(block_group_num);
     puts("Group ");
     screen_print_int(block_group_num, 10);
     puts(" : ");
@@ -113,22 +129,25 @@ static void print_block_group_descriptor(int block_group_num) {
     free(blkgp);
 }
 
-EXT2_INODE_t * load_inode(int inode_num, void * buf) {
+EXT2_INODE_t *load_inode(int inode_num, void *buf)
+{
     // get the inode's block_group and index in the inode table
     int block_group = determine_inode_block_group(inode_num);
     int index = determine_index_of_inode_in_inode_table(inode_num);
     // alloc enough memory for the inode table
-    EXT2_INODE_t * inode_table = malloc(512*((index*sizeof(EXT2_INODE_t))/512 + 1));
-    memset((void *)inode_table, '\0', 512*((index*sizeof(EXT2_INODE_t))/512 + 1));
-    if(!inode_table) puts("null");
-    EXT2_BLOCK_GROUP_DESCRIPTOR_t * blkgp = load_block_group_descriptor(block_group);
+    EXT2_INODE_t *inode_table = malloc(512 * ((index * sizeof(EXT2_INODE_t)) / 512 + 1));
+    memset((void *)inode_table, '\0', 512 * ((index * sizeof(EXT2_INODE_t)) / 512 + 1));
+    if (!inode_table)
+        puts("null");
+    EXT2_BLOCK_GROUP_DESCRIPTOR_t *blkgp = load_block_group_descriptor(block_group);
     // get the inode table addr from the block group descriptor
     int addr = determine_block_group_addr(block_group) + blkgp->inode_table_addr - 2;
     // read just enough of the inode table
-    ata_read_sectors(ext2_block_to_lba(addr), (index*sizeof(EXT2_INODE_t))/512 + 1, (char *)inode_table);
+    atapio_read_sectors(ext2_block_to_lba(addr), (index * sizeof(EXT2_INODE_t)) / 512 + 1, (char *)inode_table);
     // alloc mem for a single inode
-    EXT2_INODE_t * ret_inode = (EXT2_INODE_t *)buf;
-    if(!ret_inode) puts("null");
+    EXT2_INODE_t *ret_inode = (EXT2_INODE_t *)buf;
+    if (!ret_inode)
+        puts("null");
     // copy over the requested inode
     memcpy((void *)ret_inode, (void *)&inode_table[index], sizeof(EXT2_INODE_t));
     // free the table and the descriptor and return the inode
@@ -137,41 +156,48 @@ EXT2_INODE_t * load_inode(int inode_num, void * buf) {
     return ret_inode;
 }
 
-static EXT2_DIRECTORY_ENTRY_t * load_directory_structure_int(int inode_num) {
+static EXT2_DIRECTORY_ENTRY_t *load_directory_structure_int(int inode_num)
+{
     // get the dir's inode
-    EXT2_INODE_t * inode = malloc(sizeof(EXT2_INODE_t));
+    EXT2_INODE_t *inode = malloc(sizeof(EXT2_INODE_t));
     load_inode(inode_num, inode);
-    EXT2_DIRECTORY_ENTRY_t * dirinfo = malloc(inode->size_low);
-    if(!dirinfo) puts("null");
-    memset((void *)dirinfo, '\0', 2*inode->size_low);
+    EXT2_DIRECTORY_ENTRY_t *dirinfo = malloc(inode->size_low);
+    if (!dirinfo)
+        puts("null");
+    memset((void *)dirinfo, '\0', 2 * inode->size_low);
     int i;
     // read the contents
-    for(i = 0; i < inode->size_low/(1024<<ext2_superblock->LOG2_BLOCK_SIZE); i++) {
-        ata_read_sectors( ext2_block_to_lba(inode->direct_block_pointers[i]), 
-                          (1024<<ext2_superblock->LOG2_BLOCK_SIZE)/ATA_SECTOR_SIZE, 
-                          (char *)( (unsigned int)dirinfo + (1024<<ext2_superblock->LOG2_BLOCK_SIZE)*i) );
-        if (i>10) break;
+    for (i = 0; i < inode->size_low / (1024 << ext2_superblock->LOG2_BLOCK_SIZE); i++)
+    {
+        atapio_read_sectors(ext2_block_to_lba(inode->direct_block_pointers[i]),
+                            (1024 << ext2_superblock->LOG2_BLOCK_SIZE) / ATAPIO_SECTOR_SIZE,
+                            (char *)((unsigned int)dirinfo + (1024 << ext2_superblock->LOG2_BLOCK_SIZE) * i));
+        if (i > 10)
+            break;
     }
     free((void *)inode);
     return dirinfo;
 }
 
-static void print_dir_info(int inode_num) {
-    EXT2_DIRECTORY_ENTRY_t * dirinfo = load_directory_structure_int(inode_num);
-    while(dirinfo->size > 8) {
+static void print_dir_info(int inode_num)
+{
+    EXT2_DIRECTORY_ENTRY_t *dirinfo = load_directory_structure_int(inode_num);
+    while (dirinfo->size > 8)
+    {
         puts("inode num: ");
         screen_print_int(dirinfo->inode, 10);
         puts("; name: ");
         puts((char *)&dirinfo->name_ptr);
         puts("\n");
-        dirinfo = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dirinfo + (unsigned int)dirinfo->size); 
+        dirinfo = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dirinfo + (unsigned int)dirinfo->size);
     }
     free((void *)dirinfo);
     puts("\n");
 }
 
-static void print_inode_info(int inode_num) {
-    EXT2_INODE_t * inode = malloc(sizeof(EXT2_INODE_t));
+static void print_inode_info(int inode_num)
+{
+    EXT2_INODE_t *inode = malloc(sizeof(EXT2_INODE_t));
     load_inode(inode_num, inode);
     puts("{size : ");
     screen_print_int(inode->size_low, 10);
@@ -185,113 +211,137 @@ static void print_inode_info(int inode_num) {
     free((void *)inode);
 }
 
-void print_filesystem(int inode_num, int tab_count) {
-    EXT2_DIRECTORY_ENTRY_t * dirinfo, * dirinfo_bak;
-    EXT2_INODE_t * inode = malloc(sizeof(EXT2_INODE_t));
+void print_filesystem(int inode_num, int tab_count)
+{
+    EXT2_DIRECTORY_ENTRY_t *dirinfo, *dirinfo_bak;
+    EXT2_INODE_t *inode = malloc(sizeof(EXT2_INODE_t));
     puts("/\n");
-    char * item_name_buff = malloc(40);
+    char *item_name_buff = malloc(40);
     unsigned char entry_count = 0;
     dirinfo_bak = dirinfo = load_directory_structure_int(inode_num);
-    do {
+    do
+    {
         inode = load_inode(dirinfo->inode, inode);
-        for(int i = 0; i<tab_count; i++) puts("\t");
+        for (int i = 0; i < tab_count; i++)
+            puts("\t");
         screen_print_int(dirinfo->inode, 10);
         puts(" ");
         memcpy(item_name_buff, &dirinfo->name_ptr, dirinfo->name_len);
         *(char *)((unsigned int)item_name_buff + dirinfo->name_len) = 0;
         puts(item_name_buff);
         // if we found a dir print it's contents
-        if (( (inode->type_prem & 0xF000) == 0x4000) && entry_count > 1)
+        if (((inode->type_prem & 0xF000) == 0x4000) && entry_count > 1)
         {
-            if(getc()==0xa){
-                print_filesystem(dirinfo->inode, tab_count+1);
+            if (getc() == 0xa)
+            {
+                print_filesystem(dirinfo->inode, tab_count + 1);
             }
-            else{
+            else
+            {
                 puts("\n");
             }
-        } 
-        else{
+        }
+        else
+        {
             puts("\n");
         }
-        dirinfo = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dirinfo + (unsigned int)dirinfo->size); 
+        dirinfo = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dirinfo + (unsigned int)dirinfo->size);
         entry_count++;
-    } while(dirinfo->size > 8);
+    } while (dirinfo->size > 8);
     free((void *)dirinfo_bak);
     free((void *)inode);
     free((void *)item_name_buff);
 }
 
-void load_file(int inode_num, int seek, int skip, void * buff) {
-    EXT2_INODE_t * inode = malloc(sizeof(EXT2_INODE_t));
+void load_file(int inode_num, int seek, int skip, void *buff)
+{
+    EXT2_INODE_t *inode = malloc(sizeof(EXT2_INODE_t));
     load_inode(inode_num, inode);
-    if(!inode) return;
+    if (!inode)
+        return;
     int i;
-    for(i = 0; i < 12; i++){
-        if(inode->direct_block_pointers[i]){
-            ata_read_sectors( ext2_block_to_lba(inode->direct_block_pointers[i]), 
-                              (1024<<ext2_superblock->LOG2_BLOCK_SIZE)/ATA_SECTOR_SIZE, 
-                              (char *)( (unsigned int)buff + (1024<<ext2_superblock->LOG2_BLOCK_SIZE)*i) );
+    for (i = 0; i < 12; i++)
+    {
+        if (inode->direct_block_pointers[i])
+        {
+            atapio_read_sectors(ext2_block_to_lba(inode->direct_block_pointers[i]),
+                                (1024 << ext2_superblock->LOG2_BLOCK_SIZE) / ATAPIO_SECTOR_SIZE,
+                                (char *)((unsigned int)buff + (1024 << ext2_superblock->LOG2_BLOCK_SIZE) * i));
         }
-        else {
+        else
+        {
             break;
         }
     }
     free(inode);
 }
 
-EXT2_DIRECTORY_ENTRY_t * load_directory_structure(int inode_num, void * buff) {
+EXT2_DIRECTORY_ENTRY_t *load_directory_structure(int inode_num, void *buff)
+{
     // get the dir's inode
-    EXT2_INODE_t * inode = malloc(sizeof(EXT2_INODE_t));
+    EXT2_INODE_t *inode = malloc(sizeof(EXT2_INODE_t));
     load_inode(inode_num, inode);
-    EXT2_DIRECTORY_ENTRY_t * dirinfo = (EXT2_DIRECTORY_ENTRY_t *)buff;
-    if(!dirinfo) puts("null");
+    EXT2_DIRECTORY_ENTRY_t *dirinfo = (EXT2_DIRECTORY_ENTRY_t *)buff;
+    if (!dirinfo)
+        puts("null");
     memset((void *)dirinfo, '\0', inode->size_low);
     int i;
     // read the contents
-    for(i = 0; i < inode->size_low/(1024<<ext2_superblock->LOG2_BLOCK_SIZE); i++) {
-        ata_read_sectors( ext2_block_to_lba(inode->direct_block_pointers[i]), 
-                          (1024<<ext2_superblock->LOG2_BLOCK_SIZE)/ATA_SECTOR_SIZE, 
-                          (char *)( (unsigned int)dirinfo + (1024<<ext2_superblock->LOG2_BLOCK_SIZE)*i) );
-        if (i>10) break;
+    for (i = 0; i < inode->size_low / (1024 << ext2_superblock->LOG2_BLOCK_SIZE); i++)
+    {
+        atapio_read_sectors(ext2_block_to_lba(inode->direct_block_pointers[i]),
+                            (1024 << ext2_superblock->LOG2_BLOCK_SIZE) / ATAPIO_SECTOR_SIZE,
+                            (char *)((unsigned int)dirinfo + (1024 << ext2_superblock->LOG2_BLOCK_SIZE) * i));
+        if (i > 10)
+            break;
     }
     free((void *)inode);
     return dirinfo;
 }
 
-int path_to_inode(char * partial_path) {
-    if(!strcmp("/", partial_path)) return 2;
-    if(partial_path[0] != '/') return -1;
-    char * full_path = malloc(sizeof(char)*(strlen(partial_path)+2));
+int path_to_inode(char *partial_path)
+{
+    if (!strcmp("/", partial_path))
+        return 2;
+    if (partial_path[0] != '/')
+        return -1;
+    char *full_path = malloc(sizeof(char) * (strlen(partial_path) + 2));
     strcpy(full_path, partial_path);
     strcat(full_path, "/");
     int inode = 2, i = 1;
-    char ** split_path = strsplit(full_path, '/');
-    EXT2_INODE_t * tmp_inode_ptr = malloc(sizeof(EXT2_INODE_t));
-    EXT2_DIRECTORY_ENTRY_t * dir, * dir_bak;
+    char **split_path = strsplit(full_path, '/');
+    EXT2_INODE_t *tmp_inode_ptr = malloc(sizeof(EXT2_INODE_t));
+    EXT2_DIRECTORY_ENTRY_t *dir, *dir_bak;
     // EXT2_DIRECTORY_ENTRY_t * tmp_dir = dir;
-    while(split_path[i]) {
+    while (split_path[i])
+    {
         tmp_inode_ptr = load_inode(inode, tmp_inode_ptr);
-        if( (tmp_inode_ptr->type_prem & 0xF000) != 0x4000) {
+        if ((tmp_inode_ptr->type_prem & 0xF000) != 0x4000)
+        {
             break; // if we've hit a file, exit
         }
         dir_bak = dir = load_directory_structure_int(inode);
         // Skip . and ..
         dir = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dir + (unsigned int)dir->size);
         dir = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dir + (unsigned int)dir->size);
-        do {
-            if(memcmp(split_path[i], (char *)&dir->name_ptr, dir->name_len)) {
-                dir = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dir + (unsigned int)dir->size); 
+        do
+        {
+            if (memcmp(split_path[i], (char *)&dir->name_ptr, dir->name_len))
+            {
+                dir = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dir + (unsigned int)dir->size);
             }
-            else {
+            else
+            {
                 inode = dir->inode;
                 break;
             }
-        }
-        while(dir->size > 8);
+        } while (dir->size > 8);
         free((void *)dir_bak);
         free((void *)tmp_inode_ptr);
-        if(inode != dir->inode) {
-            while(split_path[i]) free((void *)(split_path[i++]));
+        if (inode != dir->inode)
+        {
+            while (split_path[i])
+                free((void *)(split_path[i++]));
             free((void *)split_path);
             return -1;
         }
@@ -302,7 +352,8 @@ int path_to_inode(char * partial_path) {
     return inode;
 }
 
-void init_ext2fs() {
+void init_ext2fs()
+{
     load_superblock(EXT2_SUPERBLOCK_OFFSET);
-    verify_superblock();   
+    verify_superblock();
 }
