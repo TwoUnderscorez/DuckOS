@@ -19,8 +19,8 @@ void main(void) {
         file_buff[1575] = '\0'; // Make sure there is a null terminaltor
         k=0;
         while(file_buff[k]){
-            if(k==6) set_screen_bgfg(0x1E); // Highlight `DuckOS`
-            if(k==0) set_screen_bgfg(0xE1);
+            if(k==6) screen_set_bgfg(0x1E); // Highlight `DuckOS`
+            if(k==0) screen_set_bgfg(0xE1);
             putc(file_buff[k]);
             k++;
         }
@@ -36,8 +36,8 @@ void main(void) {
         file_buff[1575] = '\0';
         k=0;
         while(file_buff[k]){
-            if(k==6) set_screen_bgfg(0x1E);
-            if(k==0) set_screen_bgfg(0xE1);
+            if(k==6) screen_set_bgfg(0x1E);
+            if(k==0) screen_set_bgfg(0xE1);
             putc(file_buff[k]);
             k++;
         }
@@ -45,5 +45,5 @@ void main(void) {
         while(j++<25000000);
     }
     getc();
-    set_screen_bgfg(0x07); // Retorun to normal colors
+    screen_set_bgfg(0x07); // Retorun to normal colors
 }

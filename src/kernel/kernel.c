@@ -13,14 +13,16 @@
 #include "../drivers/ext2.h"
 #include "../libs/string.h"
 
-int kmain(multiboot_info_t * mbd, unsigned int magic){
+int kmain(multiboot_info_t *mbd, unsigned int magic)
+{
 	screen_clear();
-	if (magic!=0x2BADB002){
+	if (magic != 0x2BADB002)
+	{
 		puts("Invalid multiboot header.");
 		return -1;
 	}
 	puts("Welcome to DuckOS!!!\n");
-	set_ymax(25);
+	screen_set_ymax(25);
 	puts("Setting up the GDT... ");
 	gdt_setup();
 	puts("[OK]\n");
@@ -48,46 +50,51 @@ int kmain(multiboot_info_t * mbd, unsigned int magic){
 	init_ext2fs();
 	puts("[OK]\n");
 	puts("Found ext2 filesystem!\n");
-    print_fs_info();
+	print_fs_info();
 	getc();
-	char ** argv = strsplit("/boot/bootscreen.quack ", ' ');
+	char **argv = strsplit("/boot/bootscreen.quack ", ' ');
 	execve(argv[0], 1, argv);
 	__asm__("mov $0x02, %eax");
 	__asm__("int $0x82");
 	int j;
-	for(int i = 0; i < 25; i++) {
-		j=0;
-		while(j++<10000000);
+	for (int i = 0; i < 25; i++)
+	{
+		j = 0;
+		while (j++ < 10000000)
+			;
 		screen_scroll();
 	}
 	argv = strsplit("/bin/terminal ", ' ');
-	set_ymax(24);
+	screen_set_ymax(24);
 	screen_clear();
-	enable_cursor();
-	do {
+	screen_enable_cursor();
+	do
+	{
 		execve(argv[0], 1, argv);
 		set_next_task_forever();
 		__asm__("mov $0x02, %eax");
 		__asm__("int $0x82");
 		screen_clear();
-		set_cursor_position(0, 0);
+		screen_set_cursor_position(0, 0);
 		puts("You have closed the last terminal, relaunching...\n");
-	}
-	while(1);
+	} while (1);
 	puts("Press any key to enter free write mode.\n");
 	getc();
-    free_write();
+	free_write();
 	return 0;
 }
 
-void free_write() {
+void free_write()
+{
 	screen_clear();
-    char c;
-    int i;
-    while(1) {
-        c = getc();
-        putc(c);
-        while(i++<100000);
-        i=0;
-    }
+	char c;
+	int i;
+	while (1)
+	{
+		c = getc();
+		putc(c);
+		while (i++ < 100000)
+			;
+		i = 0;
+	}
 }

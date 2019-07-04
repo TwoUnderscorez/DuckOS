@@ -57,7 +57,7 @@ void handle_syscall(registers_t * regs) {
                     screen_clear();
                     break;
                 case 0x04: // Set screen dolor
-                    set_screen_bgfg((char)regs->ebx);
+                    screen_set_bgfg((char)regs->ebx);
                     break;
                 default:
                     return;   

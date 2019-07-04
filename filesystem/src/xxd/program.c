@@ -44,9 +44,9 @@ void phexDump (char *desc, void *addr, int len) {
                 j++;
                 if(j==24) {
                     putc(' ');
-                    set_screen_bgfg(0x70);
+                    screen_set_bgfg(0x70);
                     puts("--MORE--");
-                    set_screen_bgfg(0x07);
+                    screen_set_bgfg(0x07);
                     getc();
                     puts("\b\b\b\b\b\b\b\b\b\b");
                     j=0;
