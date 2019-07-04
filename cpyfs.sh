@@ -1,7 +1,11 @@
 printf "\n###Mounting disk image...###\n"
-(set -x; sudo losetup /dev/loop7 disk.img -o 1048576)
-(set -x; sudo mount /dev/loop7 /mnt)
+ld=$(sudo losetup --show -f ./disk.img -o 1048576)
+printf "Allocated loop device %s\n" $ld
+(set -x; sudo mount $ld /mnt)
 printf "\n###Copying filesystem...###\n"
 (set -x; sudo rm -rf /mnt/*)
 (set -x; cp -R ./filesystem/. /mnt)
-sudo bash ./unmount.sh
+printf "\n###Unmounting...###\n"
+sudo umount /mnt
+sudo losetup -d $ld
+printf "Deallocated loop device %s\n" $ld
