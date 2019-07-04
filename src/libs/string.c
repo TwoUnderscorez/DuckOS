@@ -2,7 +2,14 @@
 #include "../drivers/screen.h"
 #include "../kernel/heap.h"
 
-// Int TO Ascii
+/**
+ * @brief Int TO Ascii
+ * 
+ * @param value 
+ * @param str 
+ * @param base 
+ * @return char* 
+ */
 char *itoa(int value, char *str, int base)
 {
     char *rc;
@@ -41,7 +48,12 @@ char *itoa(int value, char *str, int base)
     return rc;
 }
 
-// Ascii TO Int
+/**
+ * @brief Ascii TO Int
+ * 
+ * @param c 
+ * @return int 
+ */
 int atoi(char *c)
 {
     int value = 0;
@@ -61,13 +73,24 @@ int atoi(char *c)
     return (value * sign);
 }
 
-// Checks whether a char is a digit
+/**
+ * @brief Checks whether a char is a digit
+ * 
+ * @param c 
+ * @return char 
+ */
 char isdigit(char c)
 {
     return ((c >= '0') && (c <= '9'));
 }
 
-// Checks whether two strings are equal
+/**
+ * @brief Checks whether two strings are equal
+ * 
+ * @param str1 
+ * @param str2 
+ * @return char 
+ */
 char strcmp(char *str1, char *str2)
 {
     while (*(str1) != 0 && *(str2) != 0 && *(str1) == *(str2))
@@ -78,7 +101,14 @@ char strcmp(char *str1, char *str2)
     return *str1 - *str2;
 }
 
-// Compares at most the first num bytes of str1 and str2
+/**
+ * @brief Compares at most the first num bytes of str1 and str2
+ * 
+ * @param str1 
+ * @param str2 
+ * @param num 
+ * @return char 
+ */
 char strncmp(char *str1, char *str2, unsigned int num)
 {
     while (*(str1) != 0 && *(str2) != 0 && *(str1) == *(str2))
@@ -91,7 +121,14 @@ char strncmp(char *str1, char *str2, unsigned int num)
     return *str1 - *str2;
 }
 
-// Compares at most the first num bytes of data1 and data2
+/**
+ * @brief Compares at most the first num bytes of data1 and data2
+ * 
+ * @param data1 
+ * @param data2 
+ * @param num 
+ * @return char 
+ */
 char memcmp(char *data1, char *data2, unsigned int num)
 {
     while (*(data1) == *(data2))
@@ -104,21 +141,37 @@ char memcmp(char *data1, char *data2, unsigned int num)
     return 1;
 }
 
-// Copies str2 to str1
+/**
+ * @brief Copies str2 to str1
+ * 
+ * @param str1 
+ * @param str2 
+ */
 void strcpy(char *str1, char *str2)
 {
     while (*str2 != '\0')
         *(str1++) = *(str2++);
 }
 
-// Copies up to n characters from the string pointed to, by src to dest.
+/**
+ * @brief Copies up to n characters from the string pointed to, by src to dest.
+ * 
+ * @param str1 
+ * @param str2 
+ * @param num 
+ */
 void strncpy(char *str1, char *str2, unsigned int num)
 {
     while (*str2 != '\0' && num-- > 0)
         *(str1++) = *(str2++);
 }
 
-// Returns length of string
+/**
+ * @brief Returns length of string
+ * 
+ * @param str 
+ * @return unsigned int 
+ */
 unsigned int strlen(char *str)
 {
     int length = 0;
@@ -127,7 +180,14 @@ unsigned int strlen(char *str)
     return length;
 }
 
-// Copies n characters from memory area str2 to memory area str1
+/**
+ * @brief Copies n characters from memory area str2 to memory area str1
+ * 
+ * @param dst 
+ * @param src 
+ * @param count 
+ * @return void* 
+ */
 void *memcpy(void *dst, void *src, int count)
 {
     void *temp_dst = dst;
@@ -136,7 +196,16 @@ void *memcpy(void *dst, void *src, int count)
     return temp_dst;
 }
 
-// Copies the character c (an unsigned char) to the first n characters of the string pointed to, by the argument str.
+/**
+ * @brief Copies the character c (an unsigned char) 
+ * to the first n characters of the string pointed to, 
+ * by the argument str.
+ * 
+ * @param dst 
+ * @param data 
+ * @param count 
+ * @return void* 
+ */
 void *memset(void *dst, char data, int count)
 {
     void *temp_dst = dst;
@@ -145,20 +214,44 @@ void *memset(void *dst, char data, int count)
     return temp_dst;
 }
 
-// Appends the string pointed to by src to the end of the string pointed to by dest.
+/**
+ * @brief Appends the string pointed to by src to 
+ * the end of the string pointed to by dest.
+ * 
+ * @param dst 
+ * @param src 
+ * @return char* 
+ */
 char *strcat(char *dst, char *src)
 {
     return strncat(dst, src, strlen(src));
 }
 
-// Appends the string pointed to by src to the end of the string pointed to by dest up to n characters long
+/**
+ * @brief Appends the string pointed to by src 
+ * to the end of the string pointed to by dest 
+ * up to n characters long
+ * 
+ * @param dst 
+ * @param src 
+ * @param n 
+ * @return char* 
+ */
 char *strncat(char *dst, char *src, unsigned int n)
 {
     memcpy((dst + strlen(dst)), src, n);
     return dst;
 }
 
-//Scans str1 for the first occurrence of any of the characters that are part of str2, returning the number of characters of str1 read before this first occurrence.
+/**
+ * @brief Scans str1 for the first occurrence of 
+ * any of the characters that are part of str2.
+ * 
+ * @param str1 
+ * @param str2 
+ * @return unsigned int the number of characters 
+ * of str1 read before this first occurrence.
+ */
 unsigned int strcspn(char *str1, char *str2)
 {
     unsigned int n;
@@ -173,7 +266,15 @@ unsigned int strcspn(char *str1, char *str2)
     return n;
 }
 
-// finds the first occurrence of the substring substr in the string str. The terminating '\0' characters are not compared.
+/**
+ * @brief finds the first occurrence of the substring
+ * substr in the string str. The terminating '\0' 
+ * characters are not compared.
+ * 
+ * @param str 
+ * @param substr 
+ * @return char* 
+ */
 char *strstr(char *str, char *substr)
 {
     int len = strlen(substr);
@@ -196,6 +297,13 @@ char *strstr(char *str, char *substr)
     return (char *)-1;
 }
 
+/**
+ * @brief split a string, like str.split in python
+ * 
+ * @param string 
+ * @param delimiter 
+ * @return char** 
+ */
 char **strsplit(char *string, const char delimiter)
 {
     int length = 0, count = 0, i = 0, j = 0;
@@ -224,6 +332,13 @@ char **strsplit(char *string, const char delimiter)
     return base;
 }
 
+/**
+ * @brief print a hex dump
+ * 
+ * @param desc 
+ * @param addr 
+ * @param len 
+ */
 void hexDump(char *desc, void *addr, int len)
 {
     int i;
