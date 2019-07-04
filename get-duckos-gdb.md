@@ -1,4 +1,4 @@
-1. `git clone lone binutils-gdb`
+1. `git clone binutils-gdb`
 2. `cd binutils-gdb`
 3. `mkdir build-gdb`
 4. `cd build-gdb`
