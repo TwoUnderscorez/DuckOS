@@ -1,5 +1,5 @@
 CC:=gcc
-CFLAGS:=-c -Wall -Wno-discarded-qualifiers -Wno-unused-function -Wno-unknown-pragmas -fno-builtin -Wno-char-subscripts -fno-stack-protector -m32
+CFLAGS:=-c -g -Wall -Wno-discarded-qualifiers -Wno-unused-function -Wno-unknown-pragmas -fno-builtin -Wno-char-subscripts -fno-stack-protector -fno-omit-frame-pointer -m32
 LD:=ld
 LDFLAGS:=-T linker.ld -o kernel.sys -m elf_i386
 ASM:=nasm

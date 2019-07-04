@@ -46,11 +46,8 @@ out_word:
     ret
 
 io_wait:
-    push    ebp
-    mov     ebp, esp
     xor     al, al
     out     0x00, al
-    pop     ebp
     ret
 
 asmcli:
