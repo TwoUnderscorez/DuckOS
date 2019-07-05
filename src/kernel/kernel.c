@@ -40,7 +40,7 @@ int kmain(multiboot_info_t *mbd, unsigned int magic)
 	puts("Memory initialzed!\n");
 	dump_frame_map();
 	puts("Initialzing heap... ");
-	init_heap();
+	kheap_init();
 	puts("[OK]\n");
 	puts("Initialzing tasking... ");
 	__asm__("int $0x81");
