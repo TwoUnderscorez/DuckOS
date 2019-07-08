@@ -13,11 +13,20 @@ EXT2_SUPERBLOCK_t *ext2_superblock = 0;
 /**
  * @brief Get EXT2 block size
  * 
+ * @return unsigned int block size in bytes
+ */
+static inline unsigned int ext2_get_block_size_in_bytes()
+{
+    return (1024 << ext2_superblock->LOG2_BLOCK_SIZE);
+}
+/**
+ * @brief Get EXT2 block size
+ * 
  * @return unsigned int block size in sectors
  */
-static inline unsigned int ext2_get_block_size()
+static inline unsigned int ext2_get_block_size_in_sectors()
 {
-    return (1024 << ext2_superblock->LOG2_BLOCK_SIZE) / ATAPIO_SECTOR_SIZE;
+    return ext2_get_block_size_in_bytes() / ATAPIO_SECTOR_SIZE;
 }
 /**
  * @brief Convert a block count to sector count for ata
@@ -27,7 +36,7 @@ static inline unsigned int ext2_get_block_size()
  */
 static inline unsigned int ext2_block_to_sector_count(unsigned int block_count)
 {
-    return block_count * ext2_get_block_size();
+    return block_count * ext2_get_block_size_in_sectors();
 }
 /**
  * @brief Get the size of a buffer required to load a file
@@ -42,14 +51,14 @@ static unsigned int ext2_get_block_file_size_in_bytes(
     if (!inode)
         return 0;
 
-    if (inode->size_low % (ext2_get_block_size() * ATAPIO_SECTOR_SIZE) == 0)
+    if (inode->size_low % ext2_get_block_size_in_bytes() == 0)
     {
         return inode->size_low;
     }
     else
     {
-        return (inode->size_low / ext2_get_block_size() + 1) *
-               ext2_get_block_size();
+        return (inode->size_low / ext2_get_block_size_in_bytes() + 1) *
+               ext2_get_block_size_in_bytes();
     }
 }
 /**
@@ -61,7 +70,7 @@ static unsigned int ext2_get_block_file_size_in_bytes(
 static inline unsigned int ext2_get_file_size_in_blocks(
     EXT2_INODE_t *inode)
 {
-    return ext2_get_block_file_size_in_bytes(inode) / ext2_get_block_size();
+    return ext2_get_block_file_size_in_bytes(inode) / ext2_get_block_size_in_bytes();
 }
 static int determine_the_number_of_block_groups()
 {
@@ -106,12 +115,12 @@ static int determine_block_group_addr(int block_group_num)
 #pragma region convertions
 static int ext2_block_to_lba(int block_num)
 {
-    return EXT2_PARTITION_START + block_num * 2;
+    return EXT2_PARTITION_START + ext2_block_to_sector_count(block_num);
 }
 
 static int lba_to_ext2_block(int lba)
 {
-    return (lba - EXT2_PARTITION_START) / 2;
+    return (lba - EXT2_PARTITION_START) / ext2_get_block_size_in_sectors();
 }
 #pragma endregion
 
@@ -336,7 +345,7 @@ void ext2_load_file(
         goto _cleanup_file_buff;
 
     // Don't support indirect block pointers yet.
-    size_in_blocks = max(
+    size_in_blocks = min(
         ext2_get_file_size_in_blocks(inode),
         EXT2_INODE_DIRECT_BLOCK_PTR_COUNT);
 
@@ -346,9 +355,9 @@ void ext2_load_file(
     {
         atapio_read_sectors(
             ext2_block_to_lba(inode->direct_block_pointers[i]),
-            ext2_get_block_size(),
+            ext2_get_block_size_in_sectors(),
             (char *)((unsigned int)file_buff +
-                     (ext2_get_block_size() * i)));
+                     (ext2_get_block_size_in_bytes() * i)));
     }
 
     memcpy(
