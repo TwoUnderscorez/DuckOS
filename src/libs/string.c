@@ -127,7 +127,7 @@ char strncmp(char *str1, char *str2, unsigned int num)
  * @param data1 
  * @param data2 
  * @param num 
- * @return char 
+ * @return char 0 if equal, 1 if not equal
  */
 char memcmp(char *data1, char *data2, unsigned int num)
 {

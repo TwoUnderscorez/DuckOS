@@ -47,7 +47,7 @@ int kmain(multiboot_info_t *mbd, unsigned int magic)
 	puts("[OK]\n");
 	dump_frame_map();
 	puts("Initialzing EXT2 filesystem... ");
-	init_ext2fs();
+	ext2_init_fs();
 	puts("[OK]\n");
 	puts("Found ext2 filesystem!\n");
 	print_fs_info();

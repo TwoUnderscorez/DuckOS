@@ -161,17 +161,17 @@ void load_inode(int inode_num, void *buf)
     __asm__("int $0x85" ::"a"(0x01));
 }
 
-void load_directory_structure(int inode_num, void *buf)
+void load_directory_structure(EXT2_INODE_t *inode, void *buf)
 {
-    __asm__("nop" ::"b"(inode_num));
+    __asm__("nop" ::"b"(inode));
     __asm__("nop" ::"c"(buf));
     __asm__("int $0x85" ::"a"(0x02));
 }
 
-void __attribute__((optimize("O0"))) load_file(int inode_num, int seek, int skip, void *buff)
+void __attribute__((optimize("O0"))) load_file(EXT2_INODE_t *inode, int seek, int skip, void *buff)
 {
     int out;
-    __asm__("nop" ::"b"(inode_num));
+    __asm__("nop" ::"b"(inode));
     __asm__("nop" ::"c"(seek));
     __asm__("nop" ::"d"(skip));
     __asm__("movl %1, %%edi\n\t"

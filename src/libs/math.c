@@ -39,3 +39,13 @@ int round(double x)
 {
     return (int)(x + .5);
 }
+
+int inline min(int a, int b)
+{
+    return (a > b) ? b : a;
+}
+
+int inline max(int a, int b)
+{
+    return (a > b) ? a : b;
+}
