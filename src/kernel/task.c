@@ -144,13 +144,13 @@ void execve(char *path, int argc, char **argv)
     }
 
 _cleanup_file:
-    if (!file)
+    if (file)
     {
         free(file);
         file = 0;
     }
 _cleanup_inode:
-    if (!inode)
+    if (inode)
     {
         free(inode);
         inode = 0;

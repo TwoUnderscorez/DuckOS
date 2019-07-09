@@ -255,9 +255,17 @@ EXT2_INODE_t *ext2_load_inode(int inode_num, void *buf)
         sizeof(EXT2_INODE_t));       // sizeof inode
 
 _cleanup_blkgp:
-    free(blkgp);
+    if (blkgp)
+    {
+        free(blkgp);
+        blkgp = 0;
+    }
 _cleanup_inode_table:
-    free(inode_table);
+    if (inode_table)
+    {
+        free(inode_table);
+        inode_table = 0;
+    }
 _cleanup:
     return ret_inode;
 }
@@ -367,7 +375,7 @@ void ext2_load_file(
 
 _cleanup_all:
 _cleanup_file_buff:
-    if (!file_buff)
+    if (file_buff)
     {
         free(file_buff);
         file_buff = 0;
@@ -445,7 +453,7 @@ int ext2_path_to_inode(char *partial_path)
             }
         } while (dir->size > 8);
 
-        if (!dir_bak)
+        if (dir_bak)
         {
             free(dir_bak);
             dir_bak = 0;
@@ -462,7 +470,7 @@ int ext2_path_to_inode(char *partial_path)
 
 _cleanup_all:
     // _cleanup_split_path:
-    if (!split_path)
+    if (split_path)
     {
         i = 0;
         for (i = 0; split_path[i]; i++)
@@ -472,19 +480,19 @@ _cleanup_all:
         split_path = 0;
     }
 _cleanup_dir_bak:
-    if (!dir_bak)
+    if (dir_bak)
     {
         free(dir_bak);
         dir_bak = 0;
     }
 _cleanup_tmp_inode_ptr:
-    if (!tmp_inode_ptr)
+    if (tmp_inode_ptr)
     {
         free(tmp_inode_ptr);
         tmp_inode_ptr = 0;
     }
 _cleanup_full_path:
-    if (!full_path)
+    if (full_path)
     {
         free(full_path);
         full_path = 0;
