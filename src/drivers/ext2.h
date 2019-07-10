@@ -128,7 +128,7 @@ void ext2_load_file(
     unsigned int len,
     unsigned int offset,
     void *buff);
-void print_fs_info();
+void ext2_print_fs_info();
 int ext2_path_to_inode(char *path);
 
 #endif
