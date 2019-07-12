@@ -21,7 +21,6 @@ void init_libduck(void)
 {
     __asm__("movl %%esi, %0"
             : "=r"(argc));
-    screen_print_int(argc, 10);
     __asm__("movl %%edi, %0"
             : "=r"(argv));
     heap_init();
