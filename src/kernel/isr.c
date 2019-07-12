@@ -66,7 +66,9 @@ void isr_handler(registers_t regs)
 			puts("General Protection Fault");
 			break;
 		case 0x0E:
-			puts("Page Fault");
+			puts("Page Fault at 0x");
+			screen_print_int(regs.cr2, 16);
+			putc(' ');
 			break;
 		case 0x10:
 			puts("x87 Floating-Point Exception");

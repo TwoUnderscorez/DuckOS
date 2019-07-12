@@ -295,6 +295,9 @@ isr_common_stub:
 	mov eax, cr3
 	push eax		; PDPT
 	xor eax, eax
+	mov eax, cr2
+	push eax		; Page fault address
+	xor eax, eax
 
 	mov ax, 0x10	; set DataSeg to kernel
 	mov ds, ax
@@ -305,6 +308,7 @@ isr_common_stub:
 	call isr_handler
 	
 	xor ebx, ebx
+	add esp, 4
 	pop ebx
 	mov cr3, ebx
 	pop ebx			; restore DataSeg
