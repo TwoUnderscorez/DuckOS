@@ -53,7 +53,7 @@ int kmain(multiboot_info_t *mbd, unsigned int magic)
 	ext2_print_fs_info();
 	getc();
 	char **argv = strsplit("/boot/bootscreen.quack ", ' ');
-	// execve(argv[0], 1, argv);
+	execve(argv[0], 1, argv);
 	__asm__("mov $0x02, %eax");
 	__asm__("int $0x82");
 	int j;

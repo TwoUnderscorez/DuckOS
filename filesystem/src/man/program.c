@@ -13,7 +13,7 @@ void main(int argc, char **argv)
         strcat(path, ".man");
         int inode_num = path_to_inode(path);
         EXT2_INODE_t *inode = malloc(sizeof(EXT2_INODE_t));
-        load_inode(inode, inode);
+        load_inode(inode_num, inode);
         char *file_buff = (char *)malloc(inode->size_low);
         load_file(inode, 0, 0, file_buff);
         for (int i = 0; i < inode->size_low; i++)
