@@ -19,11 +19,12 @@ typedef struct memory_block_header memory_block_header_t;
 
 void init_libduck(void)
 {
-    __asm__("movl %%ebx, %0"
+    __asm__("movl %%esi, %0"
             : "=r"(argc));
-    __asm__("movl %%ecx, %0"
+    screen_print_int(argc, 10);
+    __asm__("movl %%edi, %0"
             : "=r"(argv));
-    kheap_init();
+    heap_init();
 }
 
 void _start(void)
@@ -120,7 +121,9 @@ void *malloc(unsigned int size)
 
 void free(void *ptr)
 {
-    memory_block_header_t *heapblk = (memory_block_header_t *)((unsigned int)ptr - sizeof(memory_block_header_t));
+    memory_block_header_t *heapblk =
+        (memory_block_header_t *)((unsigned int)ptr -
+                                  sizeof(memory_block_header_t));
     heapblk->used = 0;
 }
 
@@ -144,8 +147,8 @@ char *gets(char *buff)
 void execve(char *path, int argc_l, char **argv_l, int yield)
 {
     __asm__("nop" ::"b"(path));
-    __asm__("nop" ::"c"(argv_l));
     __asm__("nop" ::"d"(argc_l));
+    __asm__("nop" ::"c"(argv_l));
     __asm__("int $0x82" ::"a"(4));
     if (yield)
     {

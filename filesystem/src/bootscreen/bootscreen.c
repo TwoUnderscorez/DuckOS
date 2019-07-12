@@ -19,7 +19,7 @@ int main(void)
     for (i = 1; i < 10; i++)
     {
         screen_clear();
-        itoa(i, &itoar_buff, 10);
+        itoa(i, (char *)&itoar_buff, 10);
         path[18] = itoar_buff[0];
         load_inode(path_to_inode(path), inode);
         file = malloc(inode->size_low);
@@ -45,7 +45,7 @@ int main(void)
     for (; i < 20; i++)
     {
         screen_clear();
-        itoa(i, &itoar_buff, 10);
+        itoa(i, (char *)&itoar_buff, 10);
         memcpy(&path[17], &itoar_buff, 2);
         load_inode(path_to_inode(path), inode);
         load_file(inode, 0, 0, file);

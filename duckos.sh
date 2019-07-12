@@ -14,7 +14,7 @@ copy_filesystem() {
 
 compile() {
     printf "\n###Compiling and linking...###\n"
-    (set -x; /usr/bin/make -C ./src all)
+    (set -x; /usr/bin/make all)
 }
 
 copy_kernel() {
@@ -29,11 +29,16 @@ run() {
     (set -x; qemu-system-i386 -d int -s -S -m 4G -drive file=disk.img,format=raw)
 }
 
+clean() {
+    (set -x; /usr/bin/make clean)
+}
+
 make() {
     compile
     copy_kernel
     copy_filesystem
     run
+    clean
 }
 
 make

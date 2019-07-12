@@ -3,5 +3,9 @@
         "blkgp",
         "inode's",
         "kheap"
-    ]
+    ],
+    "files.associations": {
+        "Dockerfile-dbg": "dockerfile",
+        "string.h": "c"
+    }
 }
