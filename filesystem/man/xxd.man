@@ -3,6 +3,8 @@ NAME
 
 SYNOPSIS
         xxd [FILE]
+        xxd [FILE] [LENGTH] [OFFSET]
 
 DESCRIPTION
         xxd creates a hex dump of a given file.
+        LENGTH and OFFSET must be integers in base 10.
