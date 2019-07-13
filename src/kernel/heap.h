@@ -15,5 +15,6 @@ typedef struct memory_block_header memory_block_header_t;
 void kheap_init(void);
 void *malloc(unsigned int size);
 void free(void *ptr);
+void kheap_print_stats();
 
 #endif

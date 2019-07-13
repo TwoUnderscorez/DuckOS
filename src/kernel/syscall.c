@@ -1,6 +1,7 @@
 #include "syscall.h"
 #include "task.h"
 #include "isr.h"
+#include "heap.h"
 #include "../drivers/screen.h"
 #include "../drivers/keyboard.h"
 #include "../drivers/ext2.h"
@@ -43,6 +44,7 @@ void handle_syscall(registers_t *regs)
         case 0x06: // dump memory data
             dump_mmap();
             dump_frame_map();
+            kheap_print_stats();
             dump_all_task_memory_usage();
             break;
         default:

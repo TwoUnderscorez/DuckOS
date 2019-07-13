@@ -74,3 +74,32 @@ void free(void *ptr)
     memory_block_header_t *heapblk = (memory_block_header_t *)((unsigned int)ptr - sizeof(memory_block_header_t));
     heapblk->used = 0;
 }
+
+void kheap_print_stats()
+{
+    memory_block_header_t *ptr = (memory_block_header_t *)heap_start;
+    int used_heap = 0,
+        heap_nof_blocks = 0,
+        fragmented_heap = 0,
+        kheap_size = heap_end - heap_start;
+    while (ptr->next->length > 0)
+    {
+        fragmented_heap += ptr->length;
+        heap_nof_blocks++;
+        if (ptr->used)
+            used_heap += ptr->length;
+        ptr = ptr->next;
+    }
+
+    puts("kheap stats: total: ");
+    screen_print_int(kheap_size, 10);
+    puts("B, used: ");
+    screen_print_int(used_heap, 10);
+    puts("B, ");
+    screen_print_int(100 * (used_heap / kheap_size), 10);
+    puts("%, # of blocks: ");
+    screen_print_int(heap_nof_blocks, 10);
+    puts(", avg block size: ");
+    screen_print_int(fragmented_heap / heap_nof_blocks, 10);
+    puts(".\n");
+}
