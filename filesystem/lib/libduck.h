@@ -55,7 +55,7 @@ char *gets(char *buff);
 void execve(char *path, int argc, char **argv, int yield);
 void load_inode(int inode_num, void *buf);
 void load_directory_structure(EXT2_INODE_t *inode, void *buf);
-void load_file(EXT2_INODE_t *inode, int seek, int skip, void *buff);
+void load_file(EXT2_INODE_t *inode, int len, int offset, void *buff);
 int path_to_inode(char *path);
 int path_exists(char *path);
 #endif

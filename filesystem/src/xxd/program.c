@@ -1,23 +1,31 @@
 #include "../../lib/libduck.h"
 #include "../../lib/string.h"
 void main(int argc, char **argv);
-void phexDump(char *desc, void *addr, int len);
+void phexDump(char *desc, void *addr, int len, int offset);
 
 void main(int argc, char **argv)
 {
+    int len = 0, offset = 0;
     puts("hexdump\n");
+    if (argc == 4)
+    {
+        len = atoi(argv[2]);
+        offset = atoi(argv[3]);
+    }
     if (argc > 1)
     {
         int inode_num = path_to_inode(argv[1]);
         EXT2_INODE_t *inode = malloc(sizeof(EXT2_INODE_t));
         load_inode(inode_num, inode);
         void *file_buff = malloc(inode->size_low);
-        load_file(inode, 0, 0, file_buff);
-        phexDump(argv[1], file_buff, inode->size_low);
+        load_file(inode, len, offset, file_buff);
+        if (len == 0)
+            len = inode->size_low;
+        phexDump(argv[1], file_buff, len, offset);
     }
 }
 
-void phexDump(char *desc, void *addr, int len)
+void phexDump(char *desc, void *addr, int len, int offset)
 {
     int i, j = 0;
     char buff[17], buff2[10];
@@ -63,7 +71,7 @@ void phexDump(char *desc, void *addr, int len)
 
             // Output the offset.
             // printf ("  %04x ", i);
-            itoa(i, buff2, 16);
+            itoa(i + offset, buff2, 16);
             puts(buff2);
             puts(": ");
         }
