@@ -5,7 +5,7 @@
 unsigned int heap_end;
 char **argv;
 int argc;
-extern void main(int argc, char **argv);
+extern int main(int argc, char **argv);
 char *itoa(int value, char *str, int base);
 
 struct memory_block_header

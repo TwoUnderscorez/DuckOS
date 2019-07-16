@@ -1,8 +1,9 @@
 #include "../../lib/libduck.h"
-void main(void);
+int main(void);
 
-void main(void) {
-    char * mystr = malloc(sizeof(char)*100);
+int main(void)
+{
+    char *mystr = malloc(sizeof(char) * 100);
     puts("> ");
     gets(mystr);
     puts(mystr);

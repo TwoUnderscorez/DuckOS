@@ -1,7 +1,8 @@
 #include "../../lib/libduck.h"
-void main(void);
+int main(void);
 
-void main(void) {
+int main(void)
+{
     puts("Physical memory usage data:\n");
-    __asm__("int $0x82" :: "a" (0x06));
+    __asm__("int $0x82" ::"a"(0x06));
 }

@@ -1,7 +1,7 @@
 #include "../../lib/libduck.h"
-void main(int argc, char **argv);
+int main(int argc, char **argv);
 
-void main(int argc, char **argv)
+int main(int argc, char **argv)
 {
     int inode_num = 0;
     char *file_buff = 0;

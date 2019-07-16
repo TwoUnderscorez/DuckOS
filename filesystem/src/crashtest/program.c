@@ -1,6 +1,7 @@
 #include "../../lib/libduck.h"
-void main(void);
+int main(void);
 
-void main(void) {
-    int a = 1/0;
+int main(void)
+{
+    int a = 1 / 0;
 }

@@ -5,6 +5,8 @@ LDFLAGS:=-T linker.ld -o kernel.sys -m elf_i386
 ASM:=nasm
 ASMFLAGS:=-f elf
 
+.PHONY: boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o syscall.o testuserapp.o pic.o atapio.o ext2.o elf.o bitmap.o math.o
+
 all: kernel.o boot.o testuserapp.o
 	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o syscall.o testuserapp.o pic.o atapio.o ext2.o elf.o bitmap.o math.o
 

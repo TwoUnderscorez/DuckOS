@@ -1,8 +1,8 @@
 #include "../../lib/libduck.h"
 #include "../../lib/string.h"
-void main(int argc, char **argv);
+int main(int argc, char **argv);
 
-void main(int argc, char **argv)
+int main(int argc, char **argv)
 {
     char *path;
     if (argc > 1)

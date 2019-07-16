@@ -1,9 +1,9 @@
 #include "../../lib/libduck.h"
 #include "../../lib/string.h"
-void main(int argc, char **argv);
+int main(int argc, char **argv);
 void phexDump(char *desc, void *addr, int len, int offset);
 
-void main(int argc, char **argv)
+int main(int argc, char **argv)
 {
     int len = 0, offset = 0;
     puts("hexdump\n");

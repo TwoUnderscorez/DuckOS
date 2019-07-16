@@ -1,15 +1,14 @@
 #include "../../lib/libduck.h"
 #include "../../lib/string.h"
 
-void main(int argc, char **argv);
+int main(int argc, char **argv);
 void print_filesystem(int inode_num);
 void print_filesystem_r(int inode_num, int tab_count);
 
-void main(int argc, char **argv)
+int main(int argc, char **argv)
 {
-    unsigned int i = 0;
     if (argc < 2)
-        return;
+        return 1;
     if (!strcmp(argv[1], "-r") && argc > 2)
     {
         print_filesystem_r(path_to_inode(argv[2]), 0);
@@ -18,7 +17,7 @@ void main(int argc, char **argv)
     {
         print_filesystem(path_to_inode(argv[1]));
     }
-    return;
+    return 0;
 }
 
 void print_filesystem(int inode_num)
