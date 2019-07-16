@@ -21,16 +21,16 @@ void handle_syscall(registers_t *regs)
         puts("Recieved interrupt: 0x80. Interrupts seem to be functioning properly.\n");
         break;
     case 0x81: // Init tasking                      KMODE
-        init_tasking(regs);
+        tasking_init(regs);
         break;
     case 0x82: // Tasking                           USERLAND
         switch (regs->eax)
         {
         case 0x01: // Exit
-            remove_task(regs);
+            task_remove(regs);
             break;
         case 0x02: // Yield
-            roundRobinNext(regs);
+            task_roundRobinNext(regs);
             break;
         case 0x03: // Get more heap
             brk((page_directory_pointer_table_entry_t *)regs->cr3, (unsigned int)regs->ebx);
@@ -39,13 +39,13 @@ void handle_syscall(registers_t *regs)
             execve((char *)regs->ebx, (int)regs->edx, (char **)regs->ecx);
             break;
         case 0x05: // ps
-            print_task_linked_list();
+            task_print_task_linked_list();
             break;
         case 0x06: // dump memory data
             dump_mmap();
             dump_frame_map();
             kheap_print_stats();
-            dump_all_task_memory_usage();
+            task_dump_all_task_memory_usage();
             break;
         default:
             return;
@@ -106,7 +106,7 @@ void handle_syscall(registers_t *regs)
             {
                 puts("Path not found: ");
                 puts((char *)regs->ebx);
-                remove_task(regs);
+                task_remove(regs);
                 puts("\nTask terminated.\n");
             }
             break;

@@ -97,12 +97,14 @@ void isr_handler(registers_t regs)
 		puts("\n");
 		if (regs.cs == 0x1B && regs.useresp > 0x60000)
 		{
-			remove_task(&regs);
+			task_remove(&regs);
 			puts("Task terminated.\n");
 		}
 		else
 		{
+			puts("Unhandled kmode exception\n");
 			puts("[KERNEL PANIC] System halted :(");
+			dump_regs(&regs);
 			while (1)
 				;
 		}

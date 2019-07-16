@@ -16,7 +16,12 @@ static task_t *runningTask;
 static task_t mainTask;
 unsigned int pid_counter = 0;
 
-void init_tasking(registers_t *regs)
+/**
+ * @brief Initialize tasking capabilites
+ * 
+ * @param regs 
+ */
+void tasking_init(registers_t *regs)
 {
     // Create a task for the kernel
     regs->useresp = regs->kesp;
@@ -28,8 +33,23 @@ void init_tasking(registers_t *regs)
     runningTask = &mainTask;
 }
 
-void create_task(task_t *task, void (*main)(), unsigned int flags, unsigned int pagedir,
-                 unsigned int user_esp, unsigned int isr_esp)
+/**
+ * @brief Create a task
+ * 
+ * @param task ptr to task_t data struct
+ * @param main the task's entry point
+ * @param flags the eflags register
+ * @param pagedir physical address of the task's paging directory pointer table
+ * @param user_esp task's userland stack
+ * @param isr_esp task's kmode stack
+ */
+void task_create(
+    task_t *task,
+    void (*main)(),
+    unsigned int flags,
+    unsigned int pagedir,
+    unsigned int user_esp,
+    unsigned int isr_esp)
 {
     task->regs.eax = 0;
     task->regs.ebx = 0;
@@ -39,7 +59,7 @@ void create_task(task_t *task, void (*main)(), unsigned int flags, unsigned int 
     task->regs.edi = 0;
     task->regs.cs = 0x18 | 0x3; // Userland GDT selectors
     task->regs.ss = 0x20 | 0x3; // All tasks will run in userland
-    task->regs.ds = 0x20 | 0x3;
+    task->regs.ds = 0x20 | 0x3; // ORed with CPL 3 (userland)
     task->regs.eflags = flags;
     task->regs.eip = (unsigned int)main;
     task->regs.cr3 = (unsigned int)pagedir;
@@ -49,13 +69,23 @@ void create_task(task_t *task, void (*main)(), unsigned int flags, unsigned int 
     task->pid = pid_counter++;
 }
 
-void add_task(task_t *task)
+/**
+ * @brief Add a task to the linked list of running task 
+ * 
+ * @param task 
+ */
+void task_add(task_t *task)
 {
     task->next = runningTask->next;
     runningTask->next = task;
 }
 
-void free_task_frames(page_directory_pointer_table_entry_t *pdpt)
+/**
+ * @brief Free a task's page frame
+ * 
+ * @param pdpt 
+ */
+void task_free_frames(page_directory_pointer_table_entry_t *pdpt)
 {
     page_directory_table_entry_t *pdir;
     page_table_entry_t *ptab;
@@ -88,7 +118,13 @@ void free_task_frames(page_directory_pointer_table_entry_t *pdpt)
     enablePagingAsm();
 }
 
-void remove_task(registers_t *regs)
+/**
+ * @brief Remove a task from the linked list of running tasks
+ * 
+ * @note calls task_free_frames
+ * @param regs 
+ */
+void task_remove(registers_t *regs)
 {
     if (runningTask->next == runningTask)
     {
@@ -102,11 +138,16 @@ void remove_task(registers_t *regs)
             prev = prev->next;
         prev->next = runningTask->next;
     }
-    free_task_frames((page_directory_pointer_table_entry_t *)regs->cr3);
-    roundRobinNext(regs);
+    task_free_frames((page_directory_pointer_table_entry_t *)regs->cr3);
+    task_roundRobinNext(regs);
 }
 
-void roundRobinNext(registers_t *regs)
+/**
+ * @brief Round robin next
+ * 
+ * @param regs 
+ */
+void task_roundRobinNext(registers_t *regs)
 {
     task_t *last = runningTask;
     runningTask = runningTask->next;
@@ -118,6 +159,13 @@ void roundRobinNext(registers_t *regs)
     set_kernel_stack(mainTask.regs.kesp);
 }
 
+/**
+ * @brief posix fork+execve, like CreateProcess in win32.
+ * 
+ * @param path Command line
+ * @param argc Argument count
+ * @param argv Argument values
+ */
 void execve(char *path, int argc, char **argv)
 {
     int inode_num = 0;
@@ -157,12 +205,16 @@ _cleanup_inode:
     }
 }
 
-void set_next_task_forever()
+void task_set_next_task_forever()
 {
     runningTask->next->next = runningTask->next;
 }
 
-void print_task_linked_list()
+/**
+ * @brief Dump a running tasks list
+ * 
+ */
+void task_print_task_linked_list()
 {
     task_t *task_ptr = runningTask;
     do
@@ -182,13 +234,17 @@ void print_task_linked_list()
         putc('[');
         screen_print_int(task_ptr->pid, 10);
         puts("]:\n");
-        disp_heap(task_ptr->pid);
+        task_disp_heap(task_ptr->pid);
         getc();
         task_ptr = task_ptr->next;
     } while (task_ptr != runningTask);
 }
 
-void dump_all_task_memory_usage()
+/**
+ * @brief Print the page frames in use by running tasks
+ * 
+ */
+void task_dump_all_task_memory_usage()
 {
     puts("Loaded tasks: \n");
     task_t *ptr = runningTask;
@@ -237,7 +293,12 @@ void dump_all_task_memory_usage()
     enablePagingAsm();
 }
 
-void disp_heap(unsigned int pid)
+/**
+ * @brief Dump a task's heap
+ * 
+ * @param pid 
+ */
+void task_disp_heap(unsigned int pid)
 {
     task_t *ptr = runningTask;
     memory_block_header_t *heap_ptr = (memory_block_header_t *)0x700000;

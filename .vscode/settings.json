@@ -2,7 +2,8 @@
     "cSpell.words": [
         "blkgp",
         "inode's",
-        "kheap"
+        "kheap",
+        "kmode"
     ],
     "files.associations": {
         "Dockerfile-dbg": "dockerfile",

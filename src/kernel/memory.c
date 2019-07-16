@@ -5,7 +5,6 @@
 #include "../asm/asmio.h"
 #include "../libs/string.h"
 #include "../libs/bitmap.h"
-extern void usermain();
 
 page_directory_pointer_table_entry_t page_dir_ptr_tab[4] __attribute__((aligned(0x20)));
 page_directory_table_entry_t page_dir[512] __attribute__((aligned(0x1000)));
@@ -92,7 +91,8 @@ void dump_mmap(void)
 
 void apply_addr_to_frame_map(unsigned int base, unsigned int limit, unsigned char used)
 {
-    int limit_frame = addr_to_frameidx(limit), base_frame = addr_to_frameidx(base);
+    int limit_frame = addr_to_frameidx(limit),
+        base_frame = addr_to_frameidx(base);
     for (; base_frame <= limit_frame; base_frame++)
     {
         if (used)
@@ -104,7 +104,7 @@ void apply_addr_to_frame_map(unsigned int base, unsigned int limit, unsigned cha
 
 void load_kernel_pdpt()
 {
-    swapPageDirectoryAsm((unsigned int *)&page_dir_ptr_tab);
+    (void)swapPageDirectoryAsm((unsigned int *)&page_dir_ptr_tab);
 }
 
 void apply_mmap_to_frame_map(void)
@@ -281,7 +281,8 @@ void map_vaddr_to_pdpt(page_directory_pointer_table_entry_t *pdpt,
         // Create a page directory pointer table entry for a page directory table if it's not present.
         if (!pdpt[pdpt_idx].present)
         {
-            pdpt[pdpt_idx].page_directory_table_address = (unsigned int)kalloc_frame() >> 12;
+            pdpt[pdpt_idx].page_directory_table_address =
+                (unsigned int)kalloc_frame() >> 12;
             pdpt[pdpt_idx].present = 1;
             pdpt[pdpt_idx].ro_rw = 1;
             pdpt[pdpt_idx].kernel_user = 1;
