@@ -2,6 +2,7 @@
 #define TASK_H
 
 #include "isr.h"
+#include "memory.h"
 void other_main(void);
 void tasking_init(registers_t *regs);
 

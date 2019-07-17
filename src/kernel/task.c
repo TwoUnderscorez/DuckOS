@@ -126,6 +126,7 @@ void task_free_frames(page_directory_pointer_table_entry_t *pdpt)
  */
 void task_remove(registers_t *regs)
 {
+    task_t *prev = 0, *task_to_remove = 0;
     if (runningTask->next == runningTask)
     {
         runningTask->next = &mainTask;
@@ -133,13 +134,18 @@ void task_remove(registers_t *regs)
     }
     else
     {
-        task_t *prev = runningTask;
+        task_to_remove = prev = runningTask;
         while (prev->next != runningTask)
             prev = prev->next;
         prev->next = runningTask->next;
     }
     task_free_frames((page_directory_pointer_table_entry_t *)regs->cr3);
     task_roundRobinNext(regs);
+    if (task_to_remove)
+    {
+        free(task_to_remove);
+        task_to_remove = 0;
+    }
 }
 
 /**

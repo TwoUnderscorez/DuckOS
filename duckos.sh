@@ -15,6 +15,7 @@ copy_filesystem() {
 compile() {
     printf "\n###Compiling and linking...###\n"
     (set -x; /usr/bin/make all)
+    return $?
 }
 
 copy_kernel() {
@@ -30,14 +31,19 @@ run() {
 }
 
 clean() {
-    (set -x; /usr/bin/make clean)
+    (set -x; /usr/bin/make clean > /dev/null 2>&1)
 }
 
 make() {
     compile
-    copy_kernel
-    copy_filesystem
-    run
+    local sts=$?
+    if [ "$sts" -eq 2 ]; then
+        echo "Make failed. Stop."
+    else
+        copy_kernel
+        copy_filesystem
+        run
+    fi
     clean
 }
 
