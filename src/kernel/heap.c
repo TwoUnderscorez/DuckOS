@@ -17,6 +17,29 @@ void kheap_init(void)
     ptr->next = 0;
 }
 
+static int merge_memory_blocks(memory_block_header_t *ptr, unsigned int size)
+{
+    // If ptr and ptr->next excist and are unused.
+    if (ptr && !ptr->used && ptr->next && ptr->next->used)
+    {
+        // ptr and ptr->next are larger than size
+        if (ptr->length + ptr->next->length >= size)
+        {
+            // Merge the blocks and return
+            ptr->next = ptr->next->next;
+            return 1;
+        }
+        // If ptr->next->next is valid and unused
+        else if (ptr->next->next && !ptr->next->next->used)
+        {
+            return merge_memory_blocks(
+                ptr->next,
+                size - (unsigned int)ptr->length);
+        }
+    }
+    return 0;
+}
+
 /**
  * @brief Kernel heap malloc
  * 
@@ -28,8 +51,14 @@ void *malloc(unsigned int size)
     memory_block_header_t *ptr = (memory_block_header_t *)heap_start;
     void *retaddr = 0;
     // First fit algorithm
-    while ((ptr != 0) && (ptr->used || ptr->length < size))
+    while ((ptr != 0))
     {
+        if (ptr->length >= size && (!ptr->used))
+        // ||
+        //     merge_memory_blocks(ptr, size))
+        {
+            break;
+        }
         ptr = ptr->next;
     }
     if ((unsigned int)ptr > heap_end || (unsigned int)ptr < heap_start)
