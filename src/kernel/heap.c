@@ -58,7 +58,7 @@ void *malloc(unsigned int size)
     memset(retaddr, 0, size);
     return retaddr;
 _outofmem:
-    puts("Kernel out of memory.\n");
+    puts("KMODE Exception: Kernel out of memory.\n");
     puts("[KERNEL PANIC] System halted :(");
     while (1)
         ;
@@ -72,6 +72,15 @@ _outofmem:
 void free(void *ptr)
 {
     memory_block_header_t *heapblk = (memory_block_header_t *)((unsigned int)ptr - sizeof(memory_block_header_t));
+    if (heapblk->length < 1 ||
+        (unsigned int)heapblk->next > heap_end ||
+        heapblk->used > 1)
+    {
+        puts("KMODE Exception: Called kfree on invalid memory.\n");
+        puts("[KERNEL PANIC] System halted :(");
+        while (1)
+            ;
+    }
     heapblk->used = 0;
 }
 

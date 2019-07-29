@@ -209,6 +209,7 @@ static void elf_init_exec(Elf32_Ehdr_t *hdr, int argc, char **argv)
 				 i = 0,
 				 len = 0;
 	void *argv_mem_ptr = 0,
+		 *argv_mem_ptr_bk = 0,
 		 *argv_mem_ptr2 = 0;
 	char **argv_ptr = 0,
 		 **argv_ptr2 = 0;
@@ -245,7 +246,7 @@ static void elf_init_exec(Elf32_Ehdr_t *hdr, int argc, char **argv)
 	// call task_add in the cleanup
 
 	// Setup argc argv
-	argv_mem_ptr = malloc(PAGE_SIZE);
+	argv_mem_ptr_bk = argv_mem_ptr = malloc(PAGE_SIZE);
 	if (!argv_mem_ptr)
 		goto _cleanup_argv_mem_ptr;
 	argv_ptr = malloc(0x100);
@@ -289,10 +290,10 @@ _cleanup_argv_ptr:
 		argv_ptr = 0;
 	}
 _cleanup_argv_mem_ptr:
-	if (argv_mem_ptr)
+	if (argv_mem_ptr_bk)
 	{
-		free(argv_mem_ptr);
-		argv_mem_ptr = 0;
+		free(argv_mem_ptr_bk);
+		argv_mem_ptr_bk = 0;
 	}
 _cleanup_elf_task:
 	if (elf_task)
