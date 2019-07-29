@@ -128,12 +128,34 @@ int elf_check_supported(Elf32_Ehdr_t *hdr)
 	return 1;
 }
 
-static int elf_map_pdpt(Elf32_Ehdr_t *hdr, page_directory_pointer_table_entry_t *pdpt)
+/**
+ * @brief Map the program headers to the pdpt of the task
+ * TODO: Handle errors in the mapping process and rollback (cleanup)
+ * 
+ * @param hdr 
+ * @param pdpt 
+ * @return int 
+ */
+static int
+elf_map_pdpt(
+	Elf32_Ehdr_t *hdr,
+	page_directory_pointer_table_entry_t *pdpt)
 {
+	if (!hdr || !pdpt)
+	{
+		goto _cleanup;
+	}
+
 	Elf32_Phdr_t *phdr = elf_pheader(hdr);
-	unsigned int i, pdpt_bk;
-	page_table_entry_t *data = malloc(sizeof(page_table_entry_t));
-	memset((void *)data, '\0', sizeof(page_table_entry_t));
+	unsigned int i = 0, pdpt_bk = 0;
+	page_table_entry_t *data = 0;
+
+	data = malloc(sizeof(page_table_entry_t));
+	if (!data)
+	{
+		goto _cleanup_data;
+	}
+
 	// Iterate over program headers
 	for (i = 0; i < hdr->e_phnum; i++)
 	{
@@ -144,43 +166,93 @@ static int elf_map_pdpt(Elf32_Ehdr_t *hdr, page_directory_pointer_table_entry_t 
 		data->present = 1;
 		data->ro_rw = 1;
 		data->kernel_user = 1;
-		map_vaddr_to_pdpt(pdpt, data, segment->p_vaddr, segment->p_vaddr + segment->p_memsz);
+		map_vaddr_to_pdpt(
+			pdpt,
+			data,
+			segment->p_vaddr,
+			segment->p_vaddr + segment->p_memsz);
+
 		pdpt_bk = swapPageDirectoryAsm((unsigned int *)pdpt);
 		memcpy((void *)(segment->p_vaddr),
 			   (void *)((unsigned int)hdr + (unsigned int)segment->p_offset),
 			   segment->p_filesz);
 		swapPageDirectoryAsm((unsigned int *)pdpt_bk);
 	}
-	free(data);
+_cleanup_data:
+	if (data)
+	{
+		free(data);
+		data = 0;
+	}
+_cleanup:
 	return 0;
 }
 
+/**
+ * @brief This function will actually load an ELF and add it 
+ * to the tasks linked list.
+ * 
+ * @param hdr 
+ * @param argc 
+ * @param argv 
+ */
 static void elf_init_exec(Elf32_Ehdr_t *hdr, int argc, char **argv)
 {
+	page_directory_pointer_table_entry_t *pdpt = 0;
+	page_table_entry_t *data = 0;
+	task_t *elf_task = 0;
+	unsigned int usr_esp = 0x6FFFFF,
+				 isr_esp = 0x601FFF,
+				 heap_start = 0x700000,
+				 argv_addr = 0x600000,
+				 pdpt_bk = 0,
+				 i = 0,
+				 len = 0;
+	void *argv_mem_ptr = 0,
+		 *argv_mem_ptr2 = 0;
+	char **argv_ptr = 0,
+		 **argv_ptr2 = 0;
+
 	// Create pdpt
-	page_directory_pointer_table_entry_t *pdpt;
 	pdpt = (page_directory_pointer_table_entry_t *)create_pdpt();
 	// Map program headers to pdpt
 	elf_map_pdpt(hdr, pdpt);
 	// Setup the stack and heap
-	unsigned int usr_esp = 0x6FFFFF, isr_esp = 0x601FFF, heap_start = 0x700000, argv_addr = 0x600000, pdpt_bk, i, len;
-	page_table_entry_t *data = malloc(sizeof(page_table_entry_t));
-	memset((void *)data, '\0', sizeof(page_table_entry_t));
+	data = malloc(sizeof(page_table_entry_t));
+	if (!data)
+		goto _cleanup_data;
+
 	data->present = 1;
 	data->ro_rw = 1;
 	data->kernel_user = 1;
 	map_vaddr_to_pdpt(pdpt, data, usr_esp - 0xFFF, usr_esp);
 	map_vaddr_to_pdpt(pdpt, data, heap_start, heap_start + 1);
-	// map_vaddr_to_pdpt(pdpt, data, isr_esp-0xFFF, isr_esp);
+
 	// Setup the task
-	task_t *elf_task = malloc(sizeof(task_t));
-	memset((void *)elf_task, '\0', sizeof(task_t));
-	task_create(elf_task, (void *)hdr->e_entry, 0x0, (unsigned int)pdpt, usr_esp, isr_esp);
+	elf_task = malloc(sizeof(task_t));
+	if (!elf_task)
+		goto _cleanup_elf_task;
+
+	task_create(
+		elf_task,
+		(void *)hdr->e_entry,
+		0x0,
+		(unsigned int)pdpt,
+		usr_esp,
+		isr_esp);
+
 	strcpy(elf_task->name, argv[0]);
-	task_add(elf_task);
+	// call task_add in the cleanup
+
 	// Setup argc argv
-	void *argv_mem_ptr = malloc(0x1000);
-	char **argv_ptr = malloc(0x100);
+	argv_mem_ptr = malloc(PAGE_SIZE);
+	if (!argv_mem_ptr)
+		goto _cleanup_argv_mem_ptr;
+	argv_ptr = malloc(0x100);
+	if (!argv_ptr)
+		goto _cleanup_argv_ptr;
+
+	// Copy argv from parent's address space into kheap
 	for (i = 0; i < argc; i++)
 	{
 		len = strlen(argv[i]) + 1;
@@ -189,8 +261,11 @@ static void elf_init_exec(Elf32_Ehdr_t *hdr, int argc, char **argv)
 		argv_mem_ptr += len + 1;
 	}
 	map_vaddr_to_pdpt(pdpt, data, argv_addr, argv_addr + 1);
-	void *argv_mem_ptr2 = (void *)argv_addr + 0x100;
-	char **argv_ptr2 = (char **)argv_addr;
+
+	argv_mem_ptr2 = (void *)argv_addr + 0x100;
+	argv_ptr2 = (char **)argv_addr;
+
+	// Enter temporarily the child's address space to set the argv
 	pdpt_bk = swapPageDirectoryAsm((unsigned int *)pdpt);
 	for (i = 0; i < argc; i++)
 	{
@@ -200,13 +275,52 @@ static void elf_init_exec(Elf32_Ehdr_t *hdr, int argc, char **argv)
 		argv_mem_ptr2 += len + 1;
 	}
 	swapPageDirectoryAsm((unsigned int *)pdpt_bk);
+
 	elf_task->regs.esi = argc;
 	elf_task->regs.edi = (unsigned int)argv_ptr2;
-	free(data);
-	free((void *)argv_mem_ptr);
-	free((void *)argv_ptr);
+
+	// Finished with no errors
+	goto _func_ok_mark_vars_to_not_free;
+
+_cleanup_argv_ptr:
+	if (argv_ptr)
+	{
+		free(argv_ptr);
+		argv_ptr = 0;
+	}
+_cleanup_argv_mem_ptr:
+	if (argv_mem_ptr)
+	{
+		free(argv_mem_ptr);
+		argv_mem_ptr = 0;
+	}
+_cleanup_elf_task:
+	if (elf_task)
+	{
+		free(elf_task);
+		elf_task = 0;
+	}
+_cleanup_data:
+	if (data)
+	{
+		free(data);
+		data = 0;
+	}
+	return;
+_func_ok_mark_vars_to_not_free:
+	task_add(elf_task);
+	elf_task = 0;
+	goto _cleanup_argv_ptr;
 }
 
+/**
+ * @brief Load a task from a file
+ * 
+ * @param file The pointer to the loaded ELF binary
+ * @param argc 
+ * @param argv 
+ * @return void* 
+ */
 void *elf_load_file(void *file, int argc, char **argv)
 {
 	Elf32_Ehdr_t *hdr = (Elf32_Ehdr_t *)file;

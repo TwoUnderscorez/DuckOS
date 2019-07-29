@@ -3,7 +3,8 @@
         "blkgp",
         "inode's",
         "kheap",
-        "kmode"
+        "kmode",
+        "pdpt"
     ],
     "files.associations": {
         "Dockerfile-dbg": "dockerfile",
