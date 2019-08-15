@@ -3,6 +3,17 @@
 #include "../drivers/screen.h"
 #include "../libs/string.h"
 
+static void init_memory_block(
+    memory_block_header_t *ptr,
+    int length,
+    char used,
+    memory_block_header_t *next)
+{
+    ptr->length = length;
+    ptr->used = used;
+    ptr->next = next;
+}
+
 /**
  * @brief Init the kernel heap
  * 
@@ -12,19 +23,29 @@ void kheap_init(void)
     heap_start = (unsigned int)&endkernel + 0x1000;
     heap_end = 0x600000;
     memory_block_header_t *ptr = (memory_block_header_t *)heap_start;
-    ptr->length = -1;
-    ptr->used = 0;
-    ptr->next = 0;
+    init_memory_block(ptr, -1, 0, (memory_block_header_t *)0x0);
 }
 
+/**
+ * @brief Recursively merge fragmented memory blocks
+ * 
+ * TODO: Make sure this works properly
+ *  
+ * @param ptr 
+ * @param size 
+ * @return int 
+ */
 static int merge_memory_blocks(memory_block_header_t *ptr, unsigned int size)
 {
     // If ptr and ptr->next excist and are unused.
-    if (ptr && !ptr->used && ptr->next && ptr->next->used)
+    if (ptr && !ptr->used && ptr->next && !ptr->next->used)
     {
         // ptr and ptr->next are larger than size
-        if (ptr->length + ptr->next->length >= size)
+        if (ptr->length + ptr->next->length >= (int)size)
         {
+            // Update the size of the current block
+            ptr->length += ((int)sizeof(memory_block_header_t) +
+                            ptr->next->length);
             // Merge the blocks and return
             ptr->next = ptr->next->next;
             return 1;
@@ -32,9 +53,18 @@ static int merge_memory_blocks(memory_block_header_t *ptr, unsigned int size)
         // If ptr->next->next is valid and unused
         else if (ptr->next->next && !ptr->next->next->used)
         {
-            return merge_memory_blocks(
-                ptr->next,
-                size - (unsigned int)ptr->length);
+            // See (recursively) if the next block is free and is large enough
+            if (merge_memory_blocks(
+                    ptr->next,
+                    size - (unsigned int)ptr->length))
+            {
+                // Update the size of the current block
+                ptr->length += ((int)sizeof(memory_block_header_t) +
+                                ptr->next->length);
+                // Merge the blocks and return
+                ptr->next = ptr->next->next;
+                return 1;
+            }
         }
     }
     return 0;
@@ -48,15 +78,17 @@ static int merge_memory_blocks(memory_block_header_t *ptr, unsigned int size)
  */
 void *malloc(unsigned int size)
 {
-    memory_block_header_t *ptr = (memory_block_header_t *)heap_start;
+    memory_block_header_t *ptr = (memory_block_header_t *)heap_start,
+                          *tmpptr = 0;
     void *retaddr = 0;
+    int new_ptr_n_len = 0;
     // First fit algorithm
-    while ((ptr != 0))
+    while (ptr->length > -1)
     {
-        if (ptr->length >= size && (!ptr->used))
-        // ||
-        //     merge_memory_blocks(ptr, size))
+        if ((ptr->length >= (int)size && !ptr->used) ||
+            merge_memory_blocks(ptr, size))
         {
+            puts(" \b");
             break;
         }
         ptr = ptr->next;
@@ -65,21 +97,57 @@ void *malloc(unsigned int size)
         goto _outofmem;
     if (ptr->length == -1)
     {
-        ptr->length = size;
-        ptr->used = 1;
-        ptr->next = (memory_block_header_t *)((unsigned int)ptr +
-                                              (unsigned int)size +
-                                              sizeof(memory_block_header_t));
+        init_memory_block(
+            ptr,
+            (int)size,
+            1,
+            (memory_block_header_t *)((unsigned int)ptr +
+                                      (unsigned int)size +
+                                      sizeof(memory_block_header_t)));
+
         if ((unsigned int)ptr->next > heap_end ||
             (unsigned int)ptr->next < heap_start)
             goto _outofmem;
-        ptr->next->length = -1;
-        ptr->next->used = 0;
-        ptr->next->next = 0;
+
+        init_memory_block(
+            ptr->next,
+            -1,
+            0,
+            (memory_block_header_t *)0x0);
+    }
+    else if (ptr->length < (int)size)
+    {
+        goto _outofmem;
     }
     else
     {
         ptr->used = 1;
+
+        // The length of the newly created memory block
+        // hdr size * 2: current header + new block's header
+        new_ptr_n_len =
+            (int)ptr->next -
+            ((int)ptr +
+             (2 * (int)sizeof(memory_block_header_t)) +
+             (int)size); // <- size is less than ptr->length
+
+        // Create new smaller fragments from current block
+        if (
+            (new_ptr_n_len > ((int)sizeof(memory_block_header_t) + 2)) &&
+            ptr->next->length > 0)
+        {
+            ptr->length = (int)size;
+            tmpptr = ptr->next;
+            ptr->next = (memory_block_header_t *)((unsigned int)ptr +
+                                                  (unsigned int)size +
+                                                  sizeof(memory_block_header_t));
+
+            init_memory_block(
+                ptr->next,
+                new_ptr_n_len,
+                0,
+                tmpptr);
+        }
     }
     retaddr = (void *)((unsigned int)ptr + sizeof(memory_block_header_t));
     if (!retaddr)
@@ -118,6 +186,7 @@ void kheap_print_stats()
     memory_block_header_t *ptr = (memory_block_header_t *)heap_start;
     int used_heap = 0,
         heap_nof_blocks = 0,
+        heap_nof_used_blocks = 0,
         fragmented_heap = 0,
         kheap_size = heap_end - heap_start;
     while (ptr->next->length > 0)
@@ -125,7 +194,10 @@ void kheap_print_stats()
         fragmented_heap += ptr->length;
         heap_nof_blocks++;
         if (ptr->used)
+        {
             used_heap += ptr->length;
+            heap_nof_used_blocks++;
+        }
         ptr = ptr->next;
     }
 
@@ -137,7 +209,9 @@ void kheap_print_stats()
     screen_print_int(100 * (used_heap / kheap_size), 10);
     puts("%, # of blocks: ");
     screen_print_int(heap_nof_blocks, 10);
-    puts(", avg block size: ");
+    puts(" with ");
+    screen_print_int(heap_nof_used_blocks, 10);
+    puts(" of them used, avg used block size: ");
     screen_print_int(fragmented_heap / heap_nof_blocks, 10);
     puts(".\n");
 }
