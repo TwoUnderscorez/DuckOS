@@ -150,7 +150,7 @@ void *malloc(unsigned int size)
         }
     }
     retaddr = (void *)((unsigned int)ptr + sizeof(memory_block_header_t));
-    if (!retaddr)
+    if (!ptr)
         goto _outofmem;
     memset(retaddr, 0, size);
     return retaddr;

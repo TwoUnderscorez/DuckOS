@@ -45,7 +45,7 @@ void print_filesystem(int inode_num)
         puts("\n");
         dirinfo = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dirinfo +
                                              (unsigned int)dirinfo->size);
-    } while (dirinfo->size < 0xff);
+    } while (dirinfo->size != 0xff);
     free(dirinfo_bak);
     free(inode);
     free(dirinode);
@@ -90,7 +90,7 @@ void print_filesystem_r(int inode_num, int tab_count)
         dirinfo = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dirinfo +
                                              (unsigned int)dirinfo->size);
         entry_count++;
-    } while (dirinfo->size < 0xff);
+    } while (dirinfo->size != 0xff);
     free(dirinfo_bak);
     free(inode);
     free(dirinode);
