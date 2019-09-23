@@ -32,7 +32,7 @@ struct EXT2_DIRECTORY_ENTRY
 {
     unsigned int inode;
     unsigned short size;
-    unsigned short name_len;
+    unsigned char name_len;
     unsigned char name_ptr;
 } __attribute__((packed));
 

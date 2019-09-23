@@ -57,6 +57,8 @@ void print_filesystem_r(int inode_num, int tab_count)
     EXT2_INODE_t *inode = 0, *dirinode = 0;
     unsigned char entry_count = 0, i = 0;
 
+    // unsigned int a = 0, b = 0;
+
     inode = malloc(sizeof(EXT2_INODE_t));
     dirinode = malloc(sizeof(EXT2_INODE_t));
 
@@ -73,7 +75,7 @@ void print_filesystem_r(int inode_num, int tab_count)
             puts("\t");
         screen_print_int(dirinfo->inode, 10);
         puts(" ");
-        for (i = 0; i < dirinfo->name_len; i++)
+        for (i = 0; i < dirinfo->name_len + 1; i++)
             putc(((char *)&dirinfo->name_ptr)[i]);
         // if we found a dir print it's contents
         if (((inode->type_prem & 0xF000) == 0x4000) && entry_count > 1)
@@ -81,6 +83,10 @@ void print_filesystem_r(int inode_num, int tab_count)
             if (getc() == 0x0A)
             {
                 print_filesystem_r(dirinfo->inode, tab_count + 1);
+            }
+            else
+            {
+                putc('\n');
             }
         }
         else
@@ -90,8 +96,22 @@ void print_filesystem_r(int inode_num, int tab_count)
         dirinfo = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dirinfo +
                                              (unsigned int)dirinfo->size);
         entry_count++;
+
     } while (dirinfo->size != 0xff);
-    free(dirinfo_bak);
-    free(inode);
-    free(dirinode);
+
+    if (dirinfo_bak)
+    {
+        free(dirinfo_bak);
+        dirinfo_bak = 0;
+    }
+    if (inode)
+    {
+        free(inode);
+        inode = 0;
+    }
+    if (dirinode)
+    {
+        free(dirinode);
+        dirinode = 0;
+    }
 }
