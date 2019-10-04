@@ -24,7 +24,7 @@ void print_filesystem(int inode_num)
 {
     EXT2_DIRECTORY_ENTRY_t *dirinfo = 0, *dirinfo_bak = 0;
     EXT2_INODE_t *inode = 0, *dirinode = 0;
-    unsigned int i = 0;
+    unsigned int i = 0, dirsiz_counter = 0;
 
     inode = malloc(sizeof(EXT2_INODE_t));
     dirinode = malloc(sizeof(EXT2_INODE_t));
@@ -40,12 +40,13 @@ void print_filesystem(int inode_num)
         putc(' ');
         screen_print_int(inode->size_low, 10);
         puts("B ");
-        for (i = 0; i < dirinfo->name_len; i++)
+        for (i = 0; i < dirinfo->name_len + 1; i++)
             putc(((char *)&dirinfo->name_ptr)[i]);
         puts("\n");
+        dirsiz_counter += dirinfo->size;
         dirinfo = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dirinfo +
                                              (unsigned int)dirinfo->size);
-    } while (dirinfo->size != 0xff);
+    } while (dirsiz_counter < 1024);
     free(dirinfo_bak);
     free(inode);
     free(dirinode);
@@ -55,9 +56,9 @@ void print_filesystem_r(int inode_num, int tab_count)
 {
     EXT2_DIRECTORY_ENTRY_t *dirinfo = 0, *dirinfo_bak = 0;
     EXT2_INODE_t *inode = 0, *dirinode = 0;
-    unsigned char entry_count = 0, i = 0;
-
-    unsigned int dirsiz_counter = 0;
+    unsigned int entry_count = 0,
+                 dirsiz_counter = 0,
+                 i = 0;
 
     inode = malloc(sizeof(EXT2_INODE_t));
     dirinode = malloc(sizeof(EXT2_INODE_t));
@@ -72,7 +73,7 @@ void print_filesystem_r(int inode_num, int tab_count)
     {
         load_inode(dirinfo->inode, inode);
         for (i = 0; i < tab_count; i++)
-            puts("\t");
+            putc('\t');
         screen_print_int(dirinfo->inode, 10);
         puts(" ");
         for (i = 0; i < dirinfo->name_len + 1; i++)
@@ -93,10 +94,10 @@ void print_filesystem_r(int inode_num, int tab_count)
         {
             puts("\n");
         }
+        dirsiz_counter += dirinfo->size;
         dirinfo = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dirinfo +
                                              (unsigned int)dirinfo->size);
         entry_count++;
-        dirsiz_counter += dirinfo->size;
     } while (dirsiz_counter < 1024);
 
     if (dirinfo_bak)
