@@ -57,7 +57,7 @@ void print_filesystem_r(int inode_num, int tab_count)
     EXT2_INODE_t *inode = 0, *dirinode = 0;
     unsigned char entry_count = 0, i = 0;
 
-    // unsigned int a = 0, b = 0;
+    unsigned int dirsiz_counter = 0;
 
     inode = malloc(sizeof(EXT2_INODE_t));
     dirinode = malloc(sizeof(EXT2_INODE_t));
@@ -96,8 +96,8 @@ void print_filesystem_r(int inode_num, int tab_count)
         dirinfo = (EXT2_DIRECTORY_ENTRY_t *)((unsigned int)dirinfo +
                                              (unsigned int)dirinfo->size);
         entry_count++;
-
-    } while (dirinfo->size != 0xff);
+        dirsiz_counter += dirinfo->size;
+    } while (dirsiz_counter < 1024);
 
     if (dirinfo_bak)
     {
