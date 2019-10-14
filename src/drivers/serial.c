@@ -25,3 +25,48 @@ void serial_init()
         SERIAL_COM1_MODEM_CTRL_REG_PORT,
         0x0B); // IRQs enabled, RTS/DSR set
 }
+/**
+ * @brief Is available to read?
+ * 
+ * @return int 
+ */
+static inline int serial_received()
+{
+    return in_byte(SERIAL_COM1_LINE_STATUS_REG_PORT) & 1;
+}
+
+/**
+ * @brief Is the transit empty?
+ * 
+ * @return int 
+ */
+static inline int is_transmit_empty()
+{
+    return in_byte(SERIAL_COM1_LINE_STATUS_REG_PORT) & 0x20;
+}
+
+/**
+ * @brief Get a character from the serial port
+ * 
+ * @return char 
+ */
+char serial_getc()
+{
+    while (serial_received() == 0)
+        ;
+
+    return (char)in_byte(SERIAL_COM1_DATA_REGISTER_PORT);
+}
+
+/**
+ * @brief Write a character to the serial port
+ * 
+ * @param c 
+ */
+void serial_putc(char c)
+{
+    while (is_transmit_empty() == 0)
+        ;
+
+    out_byte(SERIAL_COM1_DATA_REGISTER_PORT, c);
+}

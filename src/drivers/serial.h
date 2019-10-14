@@ -26,4 +26,7 @@
 #define SERIAL_COM2_MODEM_STATUS_REG_PORT (SERIAL_COM2_PORT + 6)
 #define SERIAL_COM2_SCRATCH_REG_PORT (SERIAL_COM2_PORT + 7)
 
+void serial_init();
+char serial_getc();
+void serial_putc(char c);
 #endif
