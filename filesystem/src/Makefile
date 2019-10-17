@@ -1,5 +1,5 @@
 LIBS := libduck string
-SUBDIRS := bootscreen cat crashtest dmatest getstest ls man memoryusage pipetest ps terminal xxd
+SUBDIRS := bootscreen cat crashtest dmatest getstest ls man memoryusage pipetest ps terminal xxd serialtest
 
 all: $(SUBDIRS)
 $(SUBDIRS): $(LIBS)
