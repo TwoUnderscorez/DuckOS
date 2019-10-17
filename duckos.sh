@@ -35,6 +35,16 @@ clean() {
     (set -x; /usr/bin/make clean > /dev/null 2>&1)
 }
 
+start_klog() {
+    if [ -f "guest.out" ]
+    then
+        printf "\n###Creating named pipe for klog###\n"
+        (set -x; mkfifo guest.in guest.out)
+    fi
+    printf "\n###Printing kernel log to stdout###\n"
+    cat guest.out &
+}
+
 make() {
     compile
     local sts=$?
@@ -43,6 +53,7 @@ make() {
     else
         copy_kernel
         copy_filesystem
+        start_klog
         run
     fi
     clean
