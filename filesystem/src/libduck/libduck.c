@@ -69,6 +69,18 @@ void puts(char *string)
     __asm__("int $0x83");
 }
 
+void serial_puts(char *string)
+{
+    __asm__("mov $0x02, %%eax" ::"b"(string));
+    __asm__("int $0x86");
+}
+
+void putc(char c)
+{
+    __asm__("mov $0x01, %%eax" ::"b"(c));
+    __asm__("int $0x86");
+}
+
 void heap_init(void)
 {
     heap_end = 0x701000;

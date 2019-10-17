@@ -46,6 +46,8 @@ void screen_clear();
 void screen_set_bgfg(unsigned char bgfg);
 void putc(char c);
 void puts(char *string);
+void serial_putc(char c);
+void serial_puts(char *string);
 void heap_init(void);
 void extend_heap();
 void *malloc(unsigned int size);
