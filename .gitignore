@@ -4,6 +4,10 @@ DuckOS-gdb/
 # GRUB files
 /grub
 
+# serial com1
+guest.in
+guest.out
+
 # Prerequisites
 *.d
 

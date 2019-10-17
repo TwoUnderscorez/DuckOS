@@ -3,6 +3,7 @@
         "blkgp",
         "inode's",
         "kheap",
+        "klog",
         "kmode",
         "pdpt"
     ],
