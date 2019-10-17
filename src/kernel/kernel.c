@@ -32,11 +32,7 @@ int kmain(multiboot_info_t *mbd, unsigned int magic)
 	puts("[OK]\n");
 	puts("Initialzing serial...");
 	serial_init();
-	char serial_test[] = "te\rst";
-	for (unsigned int i = 0; i < 6; i++)
-	{
-		serial_putc(serial_test[i]);
-	}
+	serial_puts("kmode/If you are seeing this messag, serial is working!\n");
 	puts("[OK]\n");
 	puts("Setting up the PIC... ");
 	PIC_remap();

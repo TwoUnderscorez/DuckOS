@@ -5,6 +5,7 @@
 #include "../drivers/screen.h"
 #include "../drivers/keyboard.h"
 #include "../drivers/ext2.h"
+#include "../drivers/serial.h"
 #include "memory.h"
 
 void initialise_syscalls()
@@ -83,7 +84,7 @@ void handle_syscall(registers_t *regs)
             return;
         }
         break;
-    case 0x85: // EXT2 Filesystem                    USERLAND
+    case 0x85: // EXT2 Filesystem                   USERLAND
         switch (regs->eax)
         {
         case 0x01: // Load inode structure
@@ -116,6 +117,20 @@ void handle_syscall(registers_t *regs)
                 regs->edx = 1;
             else
                 regs->edx = 0;
+            break;
+        default:
+            return;
+        }
+        break;
+    case 0x86: // Serial                            USERLAND
+        switch (regs->eax)
+        {
+        case 0x01: // Put char
+            serial_putc((char)regs->ebx);
+            break;
+        case 0x02: // Put string
+            serial_puts("userland/");
+            serial_puts((char *)regs->ebx);
             break;
         default:
             return;
