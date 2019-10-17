@@ -70,3 +70,18 @@ void serial_putc(char c)
 
     out_byte(SERIAL_COM1_DATA_REGISTER_PORT, c);
 }
+
+/**
+ * @brief Prints a string the serial output
+ * 
+ * @param string 
+ */
+void serial_puts(char *string)
+{
+    int i = 0;
+    while (string[i])
+    {
+        serial_putc(string[i]);
+        i++;
+    }
+}

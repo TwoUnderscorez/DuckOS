@@ -30,19 +30,20 @@ int kmain(multiboot_info_t *mbd, unsigned int magic)
 	puts("Setting up the IDT... ");
 	idt_setup();
 	puts("[OK]\n");
+	puts("Initialzing serial...");
+	serial_init();
+	char serial_test[] = "te\rst";
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		serial_putc(serial_test[i]);
+	}
+	puts("[OK]\n");
 	puts("Setting up the PIC... ");
 	PIC_remap();
 	puts("[OK]\n");
 	puts("Sending test interrupt...\n");
 	__asm__("int $0x80");
 	getc();
-	puts("Initialzing serial...");
-	serial_init();
-	char serial_test[] = "test\n";
-	for (unsigned int i = 0; i < 6; i++)
-	{
-		serial_putc(serial_test[i]);
-	}
 	puts(" [OK]\n");
 	puts("Initialzing memory...\n");
 	init_memory(mbd);
