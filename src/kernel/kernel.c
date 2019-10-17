@@ -7,6 +7,7 @@
 #include "pic.h"
 #include "elf.h"
 #include "task.h"
+#include "../drivers/serial.h"
 #include "../drivers/keyboard.h"
 #include "../asm/asmio.h"
 #include "../drivers/atapio.h"
@@ -35,6 +36,14 @@ int kmain(multiboot_info_t *mbd, unsigned int magic)
 	puts("Sending test interrupt...\n");
 	__asm__("int $0x80");
 	getc();
+	puts("Initialzing serial...");
+	serial_init();
+	char serial_test[] = "test\n";
+	for (unsigned int i = 0; i < 6; i++)
+	{
+		serial_putc(serial_test[i]);
+	}
+	puts(" [OK]\n");
 	puts("Initialzing memory...\n");
 	init_memory(mbd);
 	puts("Memory initialzed!\n");

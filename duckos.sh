@@ -28,7 +28,7 @@ run() {
     printf "\n###Running QEMU...###\n"
     export DISPLAY=:0
     # -d int
-    (set -x; qemu-system-i386 -s -S -m 4G -drive file=disk.img,format=raw)
+    (set -x; qemu-system-i386 -serial pipe:guest -s -S -m 4G -drive file=disk.img,format=raw)
 }
 
 clean() {

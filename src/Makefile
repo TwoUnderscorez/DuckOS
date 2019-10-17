@@ -8,9 +8,9 @@ ASMFLAGS:=-f elf
 .PHONY: boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o syscall.o testuserapp.o pic.o atapio.o ext2.o elf.o bitmap.o math.o
 
 all: kernel.o boot.o testuserapp.o
-	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o syscall.o testuserapp.o pic.o atapio.o ext2.o elf.o bitmap.o math.o
+	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o syscall.o testuserapp.o pic.o atapio.o ext2.o elf.o bitmap.o math.o serial.o
 
-kernel.o: screen.o keyboard.o asmio.o descriptors.o memory.o heap.o atapio.o ext2.o
+kernel.o: screen.o keyboard.o asmio.o descriptors.o memory.o heap.o atapio.o ext2.o serial.o
 	$(CC) $(CFLAGS) kernel/kernel.c
 
 boot.o: kernel.o
@@ -81,6 +81,9 @@ ext2.o: math.o
 
 elf.o:
 	$(CC) $(CFLAGS) kernel/elf.c
+
+serial.o:
+	$(CC) $(CFLAGS) drivers/serial.c
 
 clean:
 	$(shell rm -rf *.o kernel.sys)
