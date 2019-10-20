@@ -5,6 +5,7 @@
 #include "../asm/asmio.h"
 #include "../libs/string.h"
 #include "../libs/bitmap.h"
+#include "../libs/log.h"
 
 page_directory_pointer_table_entry_t page_dir_ptr_tab[4] __attribute__((aligned(0x20)));
 page_directory_table_entry_t page_dir[512] __attribute__((aligned(0x1000)));
@@ -17,6 +18,7 @@ unsigned int max_frameidx;
 
 void init_memory(multiboot_info_t *mymbd)
 {
+    klog_info("Initialzing memory...");
     memset(&frame_map, '\0', 131072);
     mbd = mymbd;
     // Map a 2 mb single page using an entry in the page directory table (0-0x200000) * 3
@@ -31,21 +33,32 @@ void init_memory(multiboot_info_t *mymbd)
         page_dir[i].page_table_address = (i * 0x200000) >> 12;
         page_dir[i].kernel_user = 0;
     }
-    puts("Enabaling PAE paging... ");
+    klog_info("Enabaling PAE paging... ");
     enablePaePagingAsm();
-    puts("OK!\nSetting CR3... ");
+    klog_info("OK!");
+    klog_info("Setting CR3... ");
     (void)swapPageDirectoryAsm((unsigned int *)&page_dir_ptr_tab);
     // asm volatile("mov %0, %%cr3" ::"r"((unsigned int *)&page_dir_ptr_tab));
-    puts("OK!\nEnabling paging... ");
+    klog_info("OK!");
+    klog_info("Enabling paging... ");
     enablePagingAsm();
-    puts("OK!\nApplying MMAP to the frame map...\n");
+    klog_info("OK!");
+    klog_info("Applying MMAP to the frame map...");
     apply_mmap_to_frame_map();
     max_frameidx = addr_to_frameidx(max_ram);
-    puts("End of memory is at 0x");
-    screen_print_int(max_ram, 16);
-    puts(", that's ");
-    screen_print_int(max_frameidx, 10);
-    puts(" 4kb page frames.\n");
+    klog_info(
+        "%s%x%s%d%s",
+        "End of memory is at 0x",
+        max_ram,
+        ", that's ",
+        max_frameidx,
+        " 4kb page frames.");
+    // puts("End of memory is at 0x");
+    // screen_print_int(max_ram, 16);
+    // puts(", that's ");
+    // screen_print_int(max_frameidx, 10);
+    // puts(" 4kb page frames.\n");
+    klog_info("Memory initialzed!");
 }
 
 void dump_mmap(void)

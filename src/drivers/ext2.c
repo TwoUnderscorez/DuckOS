@@ -6,6 +6,7 @@
 #include "../libs/string.h"
 #include "../drivers/keyboard.h"
 #include "../kernel/task.h"
+#include "../libs/log.h"
 
 EXT2_SUPERBLOCK_t *ext2_superblock = 0;
 
@@ -473,6 +474,8 @@ _cleanup_full_path:
  */
 void ext2_init_fs()
 {
+    klog_info("Initialzing EXT2 filesystem... ");
     load_superblock(EXT2_SUPERBLOCK_OFFSET);
     verify_superblock();
+    klog_info("OK!");
 }

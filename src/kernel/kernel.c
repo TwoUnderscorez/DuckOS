@@ -36,7 +36,7 @@ int kmain(multiboot_info_t *mbd, unsigned int magic)
 		"%s",
 		"kmode/If you are seeing this message, serial is working!\n");
 	puts("[OK]\nnInitialzing logger...");
-	klog_set_level(KLOG_INFO);
+	klog_set_level(KLOG_DEBUG);
 	klog_set_quiet(0);
 	klog_info("%s", "Logger initialized.");
 	puts("[OK]\nSetting up the PIC... ");
@@ -46,23 +46,17 @@ int kmain(multiboot_info_t *mbd, unsigned int magic)
 	__asm__("int $0x80");
 	getc();
 	puts(" [OK]\n");
-	puts("Initialzing memory...\n");
+
 	init_memory(mbd);
-	puts("Memory initialzed!\n");
-	dump_frame_map();
-	puts("Initialzing heap... ");
+
 	kheap_init();
-	puts("[OK]\n");
-	puts("Initialzing tasking... ");
+
+	klog_info("Initialzing tasking... ");
 	__asm__("int $0x81");
-	puts("[OK]\n");
-	dump_frame_map();
-	puts("Initialzing EXT2 filesystem... ");
+	klog_info("OK!");
+
 	ext2_init_fs();
-	puts("[OK]\n");
-	puts("Found ext2 filesystem!\n");
-	ext2_print_fs_info();
-	getc();
+
 	char **argv = strsplit("/boot/bootscreen.quack ", ' ');
 	execve(argv[0], 1, argv);
 	__asm__("mov $0x02, %eax");

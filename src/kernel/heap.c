@@ -2,6 +2,7 @@
 #include "kernel.h"
 #include "../drivers/screen.h"
 #include "../libs/string.h"
+#include "../libs/log.h"
 
 static void init_memory_block(
     memory_block_header_t *ptr,
@@ -20,10 +21,12 @@ static void init_memory_block(
  */
 void kheap_init(void)
 {
+    klog_info("Initialzing heap...");
     heap_start = (unsigned int)&endkernel + 0x1000;
     heap_end = 0x600000;
     memory_block_header_t *ptr = (memory_block_header_t *)heap_start;
     init_memory_block(ptr, -1, 0, (memory_block_header_t *)0x0);
+    klog_info("OK!");
 }
 
 /**

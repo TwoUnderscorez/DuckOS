@@ -9,6 +9,7 @@
 #include "../drivers/screen.h"
 #include "../drivers/keyboard.h"
 #include "../asm/asmio.h"
+#include "../libs/log.h"
 
 // A pointer to the running task in the linked list of tasks
 static task_t *runningTask;
