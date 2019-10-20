@@ -3,6 +3,7 @@
 #include "../drivers/screen.h"
 #include "../libs/string.h"
 #include "../libs/log.h"
+#include "../libs/printf.h"
 
 static void init_memory_block(
     memory_block_header_t *ptr,
@@ -160,6 +161,8 @@ void *malloc(unsigned int size)
 _outofmem:
     puts("KMODE Exception: Kernel out of memory.\n");
     puts("[KERNEL PANIC] System halted :(");
+    klog_err("%s%d%s", "Tried to malloc a ", size, " block and failed.");
+    klog_fatal("[KERNEL PANIC] System halted :(");
     while (1)
         ;
 }
@@ -204,17 +207,19 @@ void kheap_print_stats()
         ptr = ptr->next;
     }
 
-    puts("kheap stats: total: ");
-    screen_print_int(kheap_size, 10);
-    puts("B, used: ");
-    screen_print_int(used_heap, 10);
-    puts("B, ");
-    screen_print_int(100 * (used_heap / kheap_size), 10);
-    puts("%, # of blocks: ");
-    screen_print_int(heap_nof_blocks, 10);
-    puts(" with ");
-    screen_print_int(heap_nof_used_blocks, 10);
-    puts(" of them used, avg used block size: ");
-    screen_print_int(fragmented_heap / heap_nof_blocks, 10);
-    puts(".\n");
+    printf(
+        "%s%d%s%d%s%d%s%d%s%d%s%d%s",
+        "kheap stats: total: ",
+        kheap_size,
+        "B, used: ",
+        used_heap,
+        "B, ",
+        (100 * (used_heap / kheap_size)),
+        "%, # of blocks: ",
+        heap_nof_blocks,
+        " with ",
+        heap_nof_used_blocks,
+        " of them used, avg used block size: ",
+        fragmented_heap / heap_nof_blocks,
+        ".\n");
 }
