@@ -33,7 +33,6 @@ int kmain(multiboot_info_t *mbd, unsigned int magic)
 	puts("Initialzing serial...");
 	serial_init();
 	serial_puts("kmode/If you are seeing this messag, serial is working!\n");
-	puts("[OK]\n");
 	puts("Setting up the PIC... ");
 	PIC_remap();
 	puts("[OK]\n");

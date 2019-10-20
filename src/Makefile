@@ -1,5 +1,5 @@
 CC:=gcc
-CFLAGS:=-c -g -Wall -Wno-discarded-qualifiers -Wno-unused-function -Wno-unknown-pragmas -fno-builtin -Wno-char-subscripts -fno-stack-protector -fno-omit-frame-pointer -m32
+CFLAGS:=-c -g -Wall -Wno-discarded-qualifiers -Wno-unused-function -Wno-unknown-pragmas -fno-builtin -Wno-char-subscripts -fno-stack-protector -fno-omit-frame-pointer -m32 -DPRINTF_DISABLE_SUPPORT_LONG_LONG
 LD:=ld
 LDFLAGS:=-T linker.ld -o kernel.sys -m elf_i386
 ASM:=nasm
@@ -8,9 +8,9 @@ ASMFLAGS:=-f elf
 .PHONY: boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o syscall.o testuserapp.o pic.o atapio.o ext2.o elf.o bitmap.o math.o
 
 all: kernel.o boot.o testuserapp.o
-	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o syscall.o testuserapp.o pic.o atapio.o ext2.o elf.o bitmap.o math.o serial.o
+	$(LD) $(LDFLAGS) boot.o kernel.o screen.o keyboard.o asmio.o asmisr.o gdt.o idt.o descriptors.o isr.o string.o memoryasm.o memory.o heap.o task.o syscall.o testuserapp.o pic.o atapio.o ext2.o elf.o bitmap.o math.o serial.o printf.o
 
-kernel.o: screen.o keyboard.o asmio.o descriptors.o memory.o heap.o atapio.o ext2.o serial.o
+kernel.o: screen.o keyboard.o asmio.o descriptors.o memory.o heap.o atapio.o ext2.o serial.o printf.o
 	$(CC) $(CFLAGS) kernel/kernel.c
 
 boot.o: kernel.o
@@ -54,6 +54,9 @@ libc.o:
 
 math.o:
 	$(CC) $(CFLAGS) libs/math.c
+
+printf.o:
+	$(CC) $(CFLAGS) libs/printf.c
 
 bitmap.o:
 	$(CC) $(CFLAGS) libs/bitmap.c
