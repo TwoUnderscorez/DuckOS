@@ -14,6 +14,7 @@
 #include "../drivers/ext2.h"
 #include "../libs/string.h"
 #include "../libs/printf.h"
+#include "../libs/log.h"
 
 int kmain(multiboot_info_t *mbd, unsigned int magic)
 {
@@ -33,7 +34,11 @@ int kmain(multiboot_info_t *mbd, unsigned int magic)
 	serial_init();
 	printf_serial(
 		"%s",
-		"kmode/If you are seeing this messag, serial is working!\n");
+		"kmode/If you are seeing this message, serial is working!\n");
+	puts("[OK]\nnInitialzing logger...");
+	klog_set_level(KLOG_INFO);
+	klog_set_quiet(0);
+	klog_info("%s", "Logger initialized.");
 	puts("[OK]\nSetting up the PIC... ");
 	PIC_remap();
 	puts("[OK]\n");
