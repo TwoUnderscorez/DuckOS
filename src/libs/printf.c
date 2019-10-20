@@ -36,6 +36,7 @@
 #include "printf.h"
 
 #include "../drivers/screen.h"
+#include "../drivers/serial.h"
 
 static inline void _putchar(char c)
 {
@@ -158,6 +159,18 @@ static inline void _out_char(char character, void *buffer, size_t idx, size_t ma
   if (character)
   {
     _putchar(character);
+  }
+}
+
+// internal _putchar wrapper
+static inline void _out_char_serial(char character, void *buffer, size_t idx, size_t maxlen)
+{
+  (void)buffer;
+  (void)idx;
+  (void)maxlen;
+  if (character)
+  {
+    serial_putc(character);
   }
 }
 
@@ -1007,6 +1020,16 @@ int printf_(const char *format, ...)
   return ret;
 }
 
+int printf_serial(const char *format, ...)
+{
+  va_list va;
+  va_start(va, format);
+  char buffer[1];
+  const int ret = _vsnprintf(_out_char_serial, buffer, (size_t)-1, format, va);
+  va_end(va);
+  return ret;
+}
+
 int sprintf_(char *buffer, const char *format, ...)
 {
   va_list va;
@@ -1029,6 +1052,12 @@ int vprintf_(const char *format, va_list va)
 {
   char buffer[1];
   return _vsnprintf(_out_char, buffer, (size_t)-1, format, va);
+}
+
+int vprintf_serial(const char *format, va_list va)
+{
+  char buffer[1];
+  return _vsnprintf(_out_char_serial, buffer, (size_t)-1, format, va);
 }
 
 int vsnprintf_(char *buffer, size_t count, const char *format, va_list va)

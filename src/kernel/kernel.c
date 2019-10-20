@@ -13,6 +13,7 @@
 #include "../drivers/atapio.h"
 #include "../drivers/ext2.h"
 #include "../libs/string.h"
+#include "../libs/printf.h"
 
 int kmain(multiboot_info_t *mbd, unsigned int magic)
 {
@@ -26,14 +27,14 @@ int kmain(multiboot_info_t *mbd, unsigned int magic)
 	screen_set_ymax(25);
 	puts("Setting up the GDT... ");
 	gdt_setup();
-	puts("[OK]\n");
-	puts("Setting up the IDT... ");
+	puts("[OK]\nSetting up the IDT... ");
 	idt_setup();
-	puts("[OK]\n");
-	puts("Initialzing serial...");
+	puts("[OK]\nInitialzing serial...");
 	serial_init();
-	serial_puts("kmode/If you are seeing this messag, serial is working!\n");
-	puts("Setting up the PIC... ");
+	printf_serial(
+		"%s",
+		"kmode/If you are seeing this messag, serial is working!\n");
+	puts("[OK]\nSetting up the PIC... ");
 	PIC_remap();
 	puts("[OK]\n");
 	puts("Sending test interrupt...\n");

@@ -106,4 +106,19 @@ extern "C"
 }
 #endif
 
+/**
+ * Tiny printf implementation to serial
+ * \param format A string that specifies the format of the output
+ * \return The number of characters that are written into the array, not counting the terminating null character
+ */
+int printf_serial(const char *format, ...);
+
+/**
+ * Tiny vprintf implementation to serial
+ * \param format A string that specifies the format of the output
+ * \param va A value identifying a variable arguments list
+ * \return The number of characters that are WRITTEN into the buffer, not counting the terminating null character
+ */
+int vprintf_serial(const char *format, va_list va);
+
 #endif // _PRINTF_H_
