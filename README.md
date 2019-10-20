@@ -32,6 +32,9 @@ An operating system similar to mine, but written in rust, utilizes segmentation 
 
 # DuckOS Screenshots
 
+
+### Kernel log with format string
+![Kernel log with format string](https://raw.githubusercontent.com/TwoUnderscorez/DuckOS/master/pics/log.png)
 ### Kernel Heap
 ![Kernel Heap](https://user-images.githubusercontent.com/25303006/35394829-68be0952-01f1-11e8-9d00-018af7fac4c7.png)
 ### Page frame allocator
