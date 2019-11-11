@@ -6,6 +6,7 @@ copy_filesystem() {
     printf "\n###Copying filesystem...###\n"
     (set -x; sudo rm -rf /mnt/*)
     (set -x; sudo cp -R ./filesystem/. /mnt)
+    (set -x; sudo cp ./thirdparty /mnt/thirdparty)
     printf "\n###Unmounting...###\n"
     sudo umount /mnt
     sudo losetup -d $ld
