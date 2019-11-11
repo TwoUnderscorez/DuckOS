@@ -1,5 +1,8 @@
 CC:=gcc
-CFLAGS:=-c -g -Wall -Wno-discarded-qualifiers -Wno-unused-function -Wno-unknown-pragmas -fno-builtin -Wno-char-subscripts -fno-stack-protector -fno-omit-frame-pointer -m32 -DPRINTF_DISABLE_SUPPORT_LONG_LONG -DLOG_USE_COLOR
+PRINTF_FLAGS:=-DPRINTF_DISABLE_SUPPORT_LONG_LONG
+LOGGER_FLAGS:=-DLOG_USE_COLOR
+THIRDPARTY_FLAGS:=$(PRINTF_FLAGS) $(LOGGER_FLAGS)
+CFLAGS:=-c -g -Wall -Wno-discarded-qualifiers -Wno-unused-function -Wno-unknown-pragmas -fno-builtin -Wno-char-subscripts -fno-stack-protector -fno-omit-frame-pointer -m32 $(THIRDPARTY_FLAGS)
 LD:=ld
 LDFLAGS:=-T linker.ld -o kernel.sys -m elf_i386
 ASM:=nasm
