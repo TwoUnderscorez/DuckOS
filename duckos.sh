@@ -28,8 +28,8 @@ copy_kernel() {
 run() {
     printf "\n###Running QEMU...###\n"
     export DISPLAY=:0
-    # -d int
-    (set -x; qemu-system-i386 -serial pipe:guest -s -S -m 4G -drive file=disk.img,format=raw)
+    # -d int -S
+    (set -x; qemu-system-i386 -serial pipe:guest -s -m 4G -drive file=disk.img,format=raw)
 }
 
 clean() {
