@@ -19,11 +19,8 @@ to the image with w.
 ### Actually running DuckOS 
 #### compile, copy fs and run:
 
-`# ./make.sh`
+`# ./duckos.sh`
 
-#### copy fs and run:
-
-`# ./run.sh`
 # Video
 [Watch Demo](https://1drv.ms/v/s!AuOa6AuDFR2egqMCWBcWFKsGTR2mng)
 
