@@ -8,6 +8,15 @@ DuckOS-gdb/
 guest.in
 guest.out
 
+# Kernel
+/filesystem/Kernel/Kernel.sys
+
+# Boot screen executable
+/boot/bootscreen.quack
+
+# All user binaries
+/filesystem/bin/*
+
 # Prerequisites
 *.d
 
