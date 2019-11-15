@@ -9,10 +9,10 @@ guest.in
 guest.out
 
 # Kernel
-/filesystem/Kernel/Kernel.sys
+/filesystem/kernel/kernel.sys
 
 # Boot screen executable
-/boot/bootscreen.quack
+/filesystem/boot/bootscreen.quack
 
 # All user binaries
 /filesystem/bin/*
