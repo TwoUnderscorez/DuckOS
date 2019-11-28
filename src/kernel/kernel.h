@@ -4,11 +4,11 @@
 void free_write();
 extern unsigned int endkernel;
 
-enum STATUS_CODE
-{
-    // General
-    GENERAL_SUCCESS,
-    GENERAL_FAILURE
-}
+// enum STATUS_CODE
+// {
+//     // General
+//     GENERAL_SUCCESS,
+//     GENERAL_FAILURE
+// }
 
 #endif
