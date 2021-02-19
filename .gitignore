@@ -25,7 +25,6 @@ guest.out
 *.ko
 *.obj
 *.elf
-!libduck.o
 
 # Linker output
 *.ilk
